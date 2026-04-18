@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTR Carrier Finder — Hyundai Platform Corp</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060A14; --bg2: #080C17; --bg3: #0D1117; --bg4: #111827;
+      --border: #0F1929; --border2: #1F2937; --border3: #374151;
+      --text: #F9FAFB; --text2: #D1D5DB; --text3: #9CA3AF; --text4: #6B7280;
+      --text5: #4B5563; --text6: #374151; --text7: #1F2937;
+      --blue: #3B82F6; --blue-dark: #1D4ED8; --blue-mid: #2563EB;
+      --blue-bg: #0c1a2e; --blue-border: #1e3a5f; --blue-text: #60a5fa;
+      --green: #4ade80; --green-bg: #052e16; --green-border: #134E4A;
+      --yellow: #F59E0B;
+      --red-bg: #450a0a; --red-border: #991b1b; --red-text: #f87171;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text2); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; }
+    input, textarea, select, button { font-family: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--blue-text); text-decoration: none; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+    /* ─── LAYOUT ─── */
+    #app { display: flex; flex-direction: column; min-height: 100vh; }
+    header {
+      position: sticky; top: 0; z-index: 500;
+      background: rgba(6,10,20,0.96); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .logo-icon { font-size: 20px; }
+    .logo-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: var(--text); letter-spacing: -0.02em; line-height: 1; }
+    .logo-sub { font-size: 9px; color: var(--text7); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.12em; margin-top: 2px; }
+    .divider { width: 1px; height: 24px; background: var(--border2); }
+    .nav-tabs { display: flex; gap: 2px; }
+    .nav-tab {
+      padding: 5px 12px; border-radius: 6px; border: none;
+      background: transparent; color: var(--text5);
+      font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .nav-tab.active { background: #172554; color: #93C5FD; }
+    .header-right { font-size: 10px; color: var(--text7); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ─── MAIN CONTENT ─── */
+    .main { flex: 1; }
+    .search-layout { display: grid; grid-template-columns: 310px 1fr; min-height: calc(100vh - 56px); }
+    .left-panel {
+      background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 18px; overflow-y: auto;
+      position: sticky; top: 56px; height: calc(100vh - 56px);
+    }
+    .right-panel { padding: 20px 24px; overflow-y: auto; }
+    .section-label { font-size: 10px; color: var(--blue); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.12em; margin-bottom: 8px; margin-top: 4px; }
+    .field-label { font-size: 10px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; margin-bottom: 4px; }
+
+    /* ─── INPUTS ─── */
+    .input {
+      width: 100%; padding: 10px 12px; background: var(--bg4);
+      border: 1.5px solid var(--border2); border-radius: 8px;
+      color: var(--text); font-size: 13px; font-family: 'IBM Plex Mono', monospace;
+      outline: none; transition: border-color 0.15s;
+    }
+    .input:focus { border-color: var(--border3); }
+    .input-with-icon { position: relative; }
+    .input-with-icon .input { padding-left: 34px; }
+    .input-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 1; }
+    .input-clear { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text5); font-size: 13px; padding: 2px 4px; }
+    .swap-btn {
+      display: block; width: 100%; text-align: center;
+      padding: 3px; background: none; border: 1px solid var(--border2);
+      border-radius: 6px; color: var(--text5); font-size: 12px; margin: 4px 0;
+      transition: all 0.15s;
+    }
+    .swap-btn:hover { border-color: var(--border3); color: var(--text4); }
+
+    /* ─── AUTOCOMPLETE ─── */
+    .autocomplete { position: relative; }
+    .autocomplete-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 300;
+      background: var(--bg4); border: 1.5px solid var(--border2); border-radius: 8px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6); overflow: hidden;
+    }
+    .autocomplete-item {
+      padding: 8px 13px; font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+      color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 7px;
+      transition: background 0.1s;
+    }
+    .autocomplete-item:hover, .autocomplete-item.highlighted { background: var(--blue-dark); color: #fff; }
+    .autocomplete-item mark { background: var(--blue-dark); color: #fff; border-radius: 2px; padding: 0 1px; }
+    .hub-badge { font-size: 9px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+
+    /* ─── CHIPS ─── */
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    .chip {
+      padding: 4px 11px; border-radius: 20px;
+      border: 1.5px solid var(--border2); background: transparent;
+      color: var(--text5); font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+      transition: all 0.15s;
+    }
+    .chip.active { border-color: var(--blue); background: #172554; color: #93C5FD; }
+
+    /* ─── SORT SELECT ─── */
+    .sort-select {
+      width: 100%; padding: 9px 10px; background: var(--bg4);
+      border: 1.5px solid var(--border2); border-radius: 8px;
+      color: var(--text3); font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+      outline: none; margin-bottom: 12px;
+    }
+
+    /* ─── TEXTAREA ─── */
+    .notes-area {
+      width: 100%; padding: 9px 10px; background: var(--bg4);
+      border: 1.5px solid var(--border2); border-radius: 8px;
+      color: var(--text2); font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+      outline: none; resize: vertical; margin-bottom: 12px;
+    }
+
+    /* ─── SEARCH BUTTON ─── */
+    .search-btn {
+      width: 100%; padding: 13px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: #fff; font-size: 13px; font-weight: 700;
+      font-family: 'Syne', sans-serif; transition: all 0.2s; letter-spacing: 0.03em;
+    }
+    .search-btn:disabled { background: var(--bg4); color: var(--text6); cursor: not-allowed; }
+    .clear-btn {
+      width: 100%; margin-top: 6px; padding: 7px; border-radius: 8px;
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--text5); font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ─── LANE VISUAL ─── */
+    .lane-vis {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 16px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .lane-vis-city { font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+    .lane-vis-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--green), var(--blue)); position: relative; }
+    .lane-vis-truck { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-size: 14px; }
+    .lane-vis-badge { font-size: 9px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ─── AI BOX ─── */
+    .ai-box {
+      background: linear-gradient(135deg, #0A1628, var(--bg2));
+      border: 1px solid var(--blue-dark); border-radius: 12px;
+      padding: 16px 18px; margin-bottom: 16px;
+    }
+    .ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px var(--blue); }
+    .ai-label { font-size: 10px; color: var(--blue); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.1em; }
+    .ai-text { font-size: 13px; line-height: 1.85; color: var(--text2); white-space: pre-wrap; font-family: 'IBM Plex Sans', sans-serif; }
+
+    /* ─── RESULTS HEADER ─── */
+    .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .results-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text6); }
+    .results-hint { font-size: 11px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ─── CARRIER CARD ─── */
+    .carrier-cards { display: flex; flex-direction: column; gap: 10px; }
+    .carrier-card {
+      background: #090E18; border: 1.5px solid var(--border2);
+      border-radius: 12px; padding: 16px 18px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .carrier-card:hover { background: var(--bg3); border-color: var(--border3); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+    .card-top { display: flex; gap: 12px; align-items: flex-start; }
+    .card-rank {
+      width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+      background: #1A1F2E; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: var(--text5);
+    }
+    .card-rank.top { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+    .card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); line-height: 1.2; }
+    .card-sub { font-size: 10px; color: var(--text5); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+    .card-badges-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .card-actions { display: flex; gap: 5px; flex-shrink: 0; }
+    .save-btn {
+      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border3);
+      background: #1A1F2E; color: var(--text5); font-size: 13px;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .save-btn.saved { background: #14532D; border-color: #166534; color: var(--green); }
+
+    /* stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px; }
+    .stat-cell { background: #0A0F1A; border: 1px solid #1A2035; border-radius: 6px; padding: 5px 7px; text-align: center; }
+    .stat-label { font-size: 9px; color: var(--text5); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; }
+    .stat-val { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+    .tags-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 7px; }
+    .tag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; }
+    .tag-eq { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+    .tag-sv { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); }
+    .badge-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+    .badge { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; }
+    .badge-track { background: #1e1b4b; border: 1px solid #3730a3; color: #818CF8; }
+    .badge-haz { background: #431407; border: 1px solid #9a3412; color: #fb923c; }
+    .badge-mex { background: #2d0a1e; border: 1px solid #831843; color: #f472b6; }
+    .badge-can { background: #0c2a2e; border: 1px solid #155e75; color: #67e8f9; }
+    .badge-broker { background: #1a2e05; border: 1px solid #3f6212; color: #a3e635; }
+    .badge-tag { background: var(--bg4); border: 1px solid var(--border2); color: var(--text4); }
+    .badge-mc { font-size: 9px; color: var(--text5); margin-left: auto; font-family: 'IBM Plex Mono', monospace; }
+
+    /* safety badge */
+    .safety-satisfactory { background: #052e16; border: 1px solid #166534; color: var(--green); font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
+    .safety-broker { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
+    .safety-conditional { background: #431407; border: 1px solid #9a3412; color: #fb923c; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
+
+    /* stars */
+    .stars { display: inline-flex; gap: 1px; align-items: center; }
+    .star { font-size: 11px; color: var(--yellow); }
+    .star.empty { color: var(--border3); }
+    .star-count { font-size: 10px; color: var(--text5); margin-left: 3px; }
+
+    /* rate */
+    .rate-idx { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text5); }
+    .rate-idx span { color: var(--yellow); }
+
+    /* ─── EMPTY / LOADING ─── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 14px; }
+    .empty-icon { font-size: 52px; opacity: 0.2; }
+    .empty-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text7); }
+    .empty-sub { font-size: 12px; color: var(--text7); font-family: 'IBM Plex Mono', monospace; text-align: center; max-width: 300px; line-height: 1.6; }
+    .loading-state { display: flex; align-items: center; justify-content: center; height: 40vh; }
+    .loading-inner { text-align: center; }
+    .loading-spin { font-size: 28px; margin-bottom: 10px; display: inline-block; animation: spin 1.2s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .loading-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text6); letter-spacing: 0.1em; }
+
+    /* ─── MODAL OVERLAY ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.82); display: flex;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-box {
+      background: var(--bg3); border: 1.5px solid var(--border2); border-radius: 16px;
+      max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+    .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--text); }
+    .modal-sub { font-size: 11px; color: var(--text5); font-family: 'IBM Plex Mono', monospace; margin-top: 3px; }
+    .modal-close { background: none; border: none; color: var(--text4); font-size: 18px; padding: 4px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 16px; }
+    .info-cell { background: #090E18; border: 1px solid #1A2035; border-radius: 7px; padding: 9px 11px; }
+    .info-key { font-size: 9px; color: var(--text5); font-family: 'IBM Plex Mono', monospace; margin-bottom: 3px; }
+    .info-val { font-size: 12px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+    .btn-primary {
+      flex: 1; padding: 11px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    }
+    .btn-secondary {
+      flex: 1; padding: 11px; border-radius: 8px;
+      border: 1.5px solid var(--border3); background: transparent;
+      color: var(--text3); font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+      text-align: center;
+    }
+
+    /* ─── RFQ MODAL ─── */
+    .rfq-pre {
+      background: #090E18; border: 1px solid #1A2035; border-radius: 8px;
+      padding: 14px; font-size: 12px; color: var(--text2);
+      font-family: 'IBM Plex Mono', monospace; white-space: pre-wrap;
+      max-height: 360px; overflow-y: auto; line-height: 1.7;
+    }
+    .btn-copy {
+      width: 100%; margin-top: 10px; padding: 11px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    }
+    .btn-copy.copied { background: #14532D; }
+
+    /* ─── LOOKUP TAB ─── */
+    .tab-content { max-width: 700px; margin: 40px auto; padding: 0 24px; }
+    .tab-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--text); margin-bottom: 5px; }
+    .tab-sub { font-size: 12px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; margin-bottom: 22px; }
+    .lookup-row { display: flex; gap: 8px; margin-bottom: 18px; }
+    .lookup-input {
+      flex: 1; padding: 11px 13px; background: var(--bg4);
+      border: 1.5px solid var(--border2); border-radius: 8px;
+      color: var(--text); font-size: 13px; font-family: 'IBM Plex Mono', monospace; outline: none;
+    }
+    .lookup-btn {
+      padding: 11px 18px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    }
+    .not-found { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 10px; padding: 24px; text-align: center; }
+    .not-found-icon { font-size: 28px; margin-bottom: 8px; }
+    .not-found-text { color: var(--red-text); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .not-found-hint { color: var(--text5); font-size: 11px; margin-top: 4px; font-family: 'IBM Plex Mono', monospace; }
+    .result-box { background: var(--bg2); border: 1.5px solid var(--blue-dark); border-radius: 12px; padding: 22px; }
+    .result-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--text); margin-bottom: 14px; }
+    .resources-box { margin-top: 28px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; }
+    .resources-title { font-size: 10px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.1em; margin-bottom: 10px; }
+    .resource-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-name { font-size: 12px; color: var(--text3); }
+    .resource-desc { font-size: 10px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; }
+    .resource-link { font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+
+    /* ─── SAVED TAB ─── */
+    .saved-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .compare-btn {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--blue-dark);
+      background: var(--blue-bg); color: var(--blue-text); font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .saved-wide { max-width: 940px; margin: 32px auto; padding: 0 24px; }
+
+    /* ─── COMPARE TAB ─── */
+    .compare-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    .compare-wrap { overflow-x: auto; }
+    .compare-th-cell { padding: 10px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px 8px 0 0; text-align: left; }
+    .compare-th-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
+    .compare-th-mc { font-size: 9px; color: var(--text6); font-family: 'IBM Plex Mono', monospace; }
+    .compare-row-label { padding: 9px 12px; font-size: 10px; color: var(--text5); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; width: 140px; }
+    .compare-td { padding: 9px 12px; background: var(--bg2); border: 1px solid #0A0E1A; }
+    .compare-val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text2); }
+    .compare-best { color: var(--green); font-weight: 700; }
+    .compare-rfq-btn {
+      width: 100%; padding: 9px; border-radius: 7px; border: none;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: #fff; font-size: 11px; font-weight: 700; font-family: 'Syne', sans-serif;
+    }
+
+    /* ─── GRID ─── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .search-layout { grid-template-columns: 1fr; }
+      .left-panel { position: static; height: auto; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-tab { font-size: 10px; padding: 4px 8px; }
+      header { padding: 0 12px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span class="logo-icon">🚛</span>
+      <div>
+        <div class="logo-title">OTR CARRIER FINDER</div>
+        <div class="logo-sub">HYUNDAI PLATFORM CORP · LOGISTICS TOOL</div>
+      </div>
+      <div class="divider"></div>
+      <div class="nav-tabs" id="navTabs"></div>
+    </div>
+    <div class="header-right" id="carrierCount"></div>
+  </header>
+  <div class="main" id="mainContent"></div>
+</div>
+
+<!-- MODALS -->
+<div id="modalOverlay" class="modal-overlay" style="display:none;"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const US_CITIES = [
+  "Albuquerque, NM","Anaheim, CA","Anchorage, AK","Arlington, TX","Atlanta, GA",
+  "Aurora, CO","Austin, TX","Bakersfield, CA","Baltimore, MD","Baton Rouge, LA",
+  "Birmingham, AL","Boise, ID","Boston, MA","Buffalo, NY","Chandler, AZ",
+  "Charlotte, NC","Chesapeake, VA","Chicago, IL","Chula Vista, CA","Cincinnati, OH",
+  "Cleveland, OH","Colorado Springs, CO","Columbus, OH","Corpus Christi, TX",
+  "Dallas, TX","Denver, CO","Detroit, MI","Durham, NC","El Paso, TX",
+  "Fort Wayne, IN","Fort Worth, TX","Fremont, CA","Fresno, CA","Garland, TX",
+  "Gilbert, AZ","Glendale, AZ","Greensboro, NC","Henderson, NV","Hialeah, FL",
+  "Honolulu, HI","Houston, TX","Indianapolis, IN","Irvine, CA","Irving, TX",
+  "Jacksonville, FL","Jersey City, NJ","Kansas City, MO","Laredo, TX","Las Vegas, NV",
+  "Las Cruces, NM","Lexington, KY","Lincoln, NE","Long Beach, CA","Los Angeles, CA",
+  "Louisville, KY","Lubbock, TX","Madison, WI","Memphis, TN","Mesa, AZ","Miami, FL",
+  "Milwaukee, WI","Minneapolis, MN","Nashville, TN","New Orleans, LA","New York, NY",
+  "Newark, NJ","Norfolk, VA","North Las Vegas, NV","Oakland, CA","Oklahoma City, OK",
+  "Omaha, NE","Orlando, FL","Philadelphia, PA","Phoenix, AZ","Pittsburgh, PA",
+  "Plano, TX","Portland, OR","Raleigh, NC","Reno, NV","Richmond, VA",
+  "Riverside, CA","Sacramento, CA","Saint Paul, MN","San Antonio, TX","San Diego, CA",
+  "San Francisco, CA","San Jose, CA","Santa Ana, CA","Seattle, WA","Spokane, WA",
+  "St. Louis, MO","Stockton, CA","Tampa, FL","Toledo, OH","Tucson, AZ",
+  "Tulsa, OK","Virginia Beach, VA","Washington, DC","Wichita, KS","Winston-Salem, NC",
+  "Port of Los Angeles, CA","Port of Long Beach, CA","Port of Houston, TX",
+  "Port of Savannah, GA","Port of Charleston, SC","Port of New York, NJ",
+  "Port of Seattle, WA","Port of Miami, FL","Port of Baltimore, MD",
+  "Memphis Distribution Hub, TN","Chicago Rail Hub, IL","Dallas Freight Hub, TX",
+  "Atlanta Distribution Hub, GA","Louisville Air Hub, KY",
+  "Toronto, ON","Vancouver, BC","Montreal, QC","Calgary, AB","Edmonton, AB",
+  "Monterrey, Mexico","Laredo Border, TX","El Paso Border, TX","San Diego Border, CA",
+];
+
+const CARRIERS = [
+  { id:1, name:"J.B. Hunt Transport Services", shortName:"JB Hunt", mc:"MC-042958", dot:"804436", founded:1961, hq:"Lowell, AR", fleetSize:12000, drivers:22000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Intermodal","Dedicated","FTL"], equipment:["Dry Van","Intermodal","Flatbed"], lanes:["Nationwide","Canada","Mexico"], specialties:["Intermodal","Amazon Network","High Volume"], contact:"1-800-643-3622", website:"jbhunt.com", avgDaysToPay:28, creditScore:98, onTimeDelivery:94, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$$", rating:4.5, reviews:1240, tags:["Top Tier","High Volume","Intermodal Leader"] },
+  { id:2, name:"Werner Enterprises", shortName:"Werner", mc:"MC-053466", dot:"793094", founded:1956, hq:"Omaha, NE", fleetSize:8500, drivers:14000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Regional","Dedicated","FTL","Expedited"], equipment:["Dry Van","Flatbed","Refrigerated","Specialized"], lanes:["Nationwide","Mexico","Canada"], specialties:["Temperature Controlled","Team Drivers","Cross-Border"], contact:"1-800-228-2240", website:"werner.com", avgDaysToPay:30, creditScore:96, onTimeDelivery:92, trackingCapable:true, ediFiled:true, hazmat:true, rateIndex:"$$$", rating:4.3, reviews:890, tags:["Hazmat Certified","Reefer Expert","Mexico Cross-Border"] },
+  { id:3, name:"Schneider National", shortName:"Schneider", mc:"MC-154673", dot:"264184", founded:1935, hq:"Green Bay, WI", fleetSize:10000, drivers:18000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Intermodal","Bulk","Dedicated","FTL","LTL"], equipment:["Dry Van","Tanker","Bulk","Intermodal"], lanes:["Nationwide","Canada","Mexico"], specialties:["Bulk/Tanker","Intermodal","Chemical"], contact:"1-800-558-6767", website:"schneider.com", avgDaysToPay:25, creditScore:97, onTimeDelivery:93, trackingCapable:true, ediFiled:true, hazmat:true, rateIndex:"$$$", rating:4.4, reviews:1050, tags:["Hazmat","Chemical Capable","Oldest Carrier"] },
+  { id:4, name:"C.H. Robinson (Truckload)", shortName:"CHR", mc:"MC-147674", dot:"984622", founded:1905, hq:"Eden Prairie, MN", fleetSize:0, drivers:0, authority:"Active (Broker+Carrier)", safetyRating:"N/A (Broker)", services:["OTR","LTL","FTL","Air","Ocean","Intermodal","Expedited"], equipment:["Dry Van","Refrigerated","Flatbed","Specialized"], lanes:["Nationwide","Global","Canada","Mexico"], specialties:["Asset-light","Global Network","TMS Integration"], contact:"1-800-323-7587", website:"chrobinson.com", avgDaysToPay:35, creditScore:99, onTimeDelivery:91, trackingCapable:true, ediFiled:true, hazmat:true, rateIndex:"$$$$", rating:4.5, reviews:2100, tags:["Broker+Carrier","Global","Best for Complex Loads"] },
+  { id:5, name:"Knight-Swift Transportation", shortName:"Knight-Swift", mc:"MC-155472", dot:"325381", founded:1966, hq:"Phoenix, AZ", fleetSize:23000, drivers:35000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Intermodal","Dedicated","Refrigerated","FTL"], equipment:["Dry Van","Refrigerated","Intermodal"], lanes:["Nationwide","Mexico"], specialties:["Largest Carrier","Temperature Controlled","High Volume"], contact:"1-800-800-2200", website:"knighttrans.com", avgDaysToPay:30, creditScore:95, onTimeDelivery:89, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$", rating:4.2, reviews:1560, tags:["Largest Fleet","High Volume","Reefer Available"] },
+  { id:6, name:"Landstar System", shortName:"Landstar", mc:"MC-276023", dot:"1256671", founded:1968, hq:"Jacksonville, FL", fleetSize:17000, drivers:11000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Flatbed","Specialized","Heavy Haul","Expedited"], equipment:["Flatbed","Dry Van","Specialized","Heavy Haul","Removable Gooseneck"], lanes:["Nationwide","Canada","Mexico"], specialties:["Oversize/Overweight","Project Cargo","Flatbed Specialist"], contact:"1-904-398-9400", website:"landstar.com", avgDaysToPay:27, creditScore:96, onTimeDelivery:95, trackingCapable:true, ediFiled:true, hazmat:true, rateIndex:"$$$$", rating:4.4, reviews:780, tags:["Flatbed Expert","Oversize","Agent-based Network"] },
+  { id:7, name:"XPO Logistics", shortName:"XPO", mc:"MC-236512", dot:"1156954", founded:2000, hq:"Greenwich, CT", fleetSize:7000, drivers:12000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","LTL","FTL","Intermodal","Expedited"], equipment:["Dry Van","Flatbed","Specialized","Refrigerated"], lanes:["Nationwide","Canada","Europe"], specialties:["Tech-Driven","LTL Network","Last Mile"], contact:"1-844-742-5976", website:"xpo.com", avgDaysToPay:32, creditScore:94, onTimeDelivery:91, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$", rating:4.1, reviews:940, tags:["Tech Forward","LTL+FTL","European Network"] },
+  { id:8, name:"Coyote Logistics (UPS)", shortName:"Coyote", mc:"MC-545210", dot:"2335922", founded:2006, hq:"Chicago, IL", fleetSize:0, drivers:0, authority:"Active (Broker)", safetyRating:"N/A (Broker)", services:["OTR","LTL","FTL","Intermodal","Expedited","Refrigerated"], equipment:["Dry Van","Flatbed","Refrigerated","Specialized"], lanes:["Nationwide","Canada","Mexico"], specialties:["Spot Market","UPS Network","Flexible Capacity"], contact:"1-800-COYOTE1", website:"coyote.com", avgDaysToPay:30, creditScore:97, onTimeDelivery:90, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$", rating:4.2, reviews:670, tags:["Spot Market Expert","UPS Backed","Flexible"] },
+  { id:9, name:"Old Dominion Freight Line", shortName:"ODFL", mc:"MC-022846", dot:"76648", founded:1934, hq:"Thomasville, NC", fleetSize:9500, drivers:22000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","LTL","Expedited","Regional"], equipment:["Dry Van"], lanes:["Nationwide"], specialties:["LTL Leader","On-Time","Claims-Free"], contact:"1-800-432-6335", website:"odfl.com", avgDaysToPay:20, creditScore:99, onTimeDelivery:97, trackingCapable:true, ediFiled:true, hazmat:true, rateIndex:"$$$$", rating:4.6, reviews:1820, tags:["#1 LTL","Best On-Time","Claims Champion"] },
+  { id:10, name:"Echo Global Logistics", shortName:"Echo", mc:"MC-662697", dot:"2304801", founded:2005, hq:"Chicago, IL", fleetSize:0, drivers:0, authority:"Active (Broker)", safetyRating:"N/A (Broker)", services:["OTR","LTL","FTL","Intermodal"], equipment:["Dry Van","Flatbed","Refrigerated"], lanes:["Nationwide"], specialties:["Mid-Market","Tech Platform","Spot Rates"], contact:"1-800-354-7993", website:"echo.com", avgDaysToPay:35, creditScore:92, onTimeDelivery:88, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$", rating:4.0, reviews:420, tags:["Good Rates","Tech Platform","Mid-Market"] },
+  { id:11, name:"Ryder System (Freight)", shortName:"Ryder", mc:"MC-318966", dot:"1589233", founded:1933, hq:"Miami, FL", fleetSize:6000, drivers:9000, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Dedicated","FTL","Last Mile"], equipment:["Dry Van","Refrigerated","Specialized"], lanes:["Nationwide","Canada"], specialties:["Dedicated Fleet","Last Mile","e-Commerce"], contact:"1-888-879-3371", website:"ryder.com", avgDaysToPay:28, creditScore:95, onTimeDelivery:93, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$", rating:4.2, reviews:560, tags:["Dedicated Expert","Last Mile","e-Commerce"] },
+  { id:12, name:"Universal Truckload Services", shortName:"Universal", mc:"MC-367544", dot:"2110552", founded:1994, hq:"Warren, MI", fleetSize:3000, drivers:4500, authority:"Active", safetyRating:"Satisfactory", services:["OTR","Flatbed","Specialized","Heavy Haul","Container"], equipment:["Flatbed","Dry Van","Container","Specialized"], lanes:["Nationwide","Canada","Mexico"], specialties:["Automotive","Steel","Container Drayage"], contact:"1-586-920-0100", website:"utsCO.com", avgDaysToPay:32, creditScore:90, onTimeDelivery:91, trackingCapable:true, ediFiled:true, hazmat:false, rateIndex:"$$$", rating:4.1, reviews:310, tags:["Automotive","Steel Haul","Container Drayage"] },
+];
+
+const EQUIPMENT_TYPES = ["Dry Van","Flatbed","Refrigerated","Intermodal","Tanker","Specialized","Heavy Haul","Container","Removable Gooseneck"];
+const SERVICE_TYPES = ["OTR","FTL","LTL","Intermodal","Dedicated","Expedited","Refrigerated","Last Mile"];
+const LANE_TYPES = ["Nationwide","Canada","Mexico","Cross-border","Global"];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let state = {
+  tab: 'search',
+  origin: '', destination: '', weight: '', commodity: '', notes: '',
+  equipment: [], services: [], lanes: [], sortBy: 'rating',
+  results: null, loading: false, aiText: '', aiLoading: false,
+  saved: JSON.parse(localStorage.getItem('otr_saved') || '[]'),
+  selectedCarrier: null, rfqCarrier: null,
+  mcSearch: '', mcResult: null,
+  rfqText: '', rfqLoading: false, rfqCopied: false,
+};
+
+function savePersist() {
+  localStorage.setItem('otr_saved', JSON.stringify(state.saved));
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function isSaved(c) { return state.saved.some(s => s.id === c.id); }
+function toggleSave(c) {
+  if (isSaved(c)) state.saved = state.saved.filter(s => s.id !== c.id);
+  else state.saved = [...state.saved, c];
+  savePersist(); render();
+}
+function toggle(val, arr) {
+  return arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
+}
+function stars(rating) {
+  let html = '<span class="stars">';
+  for (let i = 1; i <= 5; i++) {
+    html += `<span class="star${i > rating ? ' empty' : ''}">${i <= rating ? '★' : '☆'}</span>`;
+  }
+  html += `<span class="star-count">${rating}</span></span>`;
+  return html;
+}
+function safetyBadge(rating) {
+  if (rating.includes('Broker')) return `<span class="safety-broker">🔁 Broker</span>`;
+  if (rating === 'Satisfactory') return `<span class="safety-satisfactory">✓ Satisfactory</span>`;
+  return `<span class="safety-conditional">⚠ ${rating}</span>`;
+}
+function highlightMatch(city, query) {
+  if (!query) return city;
+  const idx = city.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return city;
+  return city.slice(0, idx) + `<mark>${city.slice(idx, idx + query.length)}</mark>` + city.slice(idx + query.length);
+}
+
+// ═══════════════════════════════════════════════════
+// AUTOCOMPLETE
+// ═══════════════════════════════════════════════════
+function setupAutocomplete(inputId, stateKey) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const wrapper = input.closest('.autocomplete');
+  let highlighted = 0;
+  let suggestions = [];
+
+  input.addEventListener('input', () => {
+    const q = input.value; state[stateKey] = q;
+    if (q.length >= 2) {
+      const starts = US_CITIES.filter(c => c.toLowerCase().startsWith(q.toLowerCase())).slice(0, 7);
+      const contains = US_CITIES.filter(c => !c.toLowerCase().startsWith(q.toLowerCase()) && c.toLowerCase().includes(q.toLowerCase())).slice(0, 3);
+      suggestions = [...starts, ...contains].slice(0, 8);
+      highlighted = 0;
+      renderDropdown();
+    } else {
+      closeDropdown();
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const drop = wrapper.querySelector('.autocomplete-dropdown');
+    if (!drop) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); highlighted = Math.min(highlighted + 1, suggestions.length - 1); renderDropdown(); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); highlighted = Math.max(highlighted - 1, 0); renderDropdown(); }
+    if (e.key === 'Enter' && suggestions[highlighted]) { select(suggestions[highlighted]); }
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) closeDropdown(); });
+
+  function renderDropdown() {
+    let existing = wrapper.querySelector('.autocomplete-dropdown');
+    if (existing) existing.remove();
+    if (!suggestions.length) return;
+    const drop = document.createElement('div');
+    drop.className = 'autocomplete-dropdown';
+    suggestions.forEach((city, i) => {
+      const isHub = city.includes('Port of') || city.includes('Hub') || city.includes('Border');
+      const item = document.createElement('div');
+      item.className = 'autocomplete-item' + (i === highlighted ? ' highlighted' : '');
+      item.innerHTML = `<span style="font-size:11px;opacity:.6">${isHub ? '⚓' : '📍'}</span>${highlightMatch(city, input.value)}${isHub ? '<span class="hub-badge">HUB</span>' : ''}`;
+      item.addEventListener('mousedown', (e) => { e.preventDefault(); select(city); });
+      item.addEventListener('mouseenter', () => { highlighted = i; renderDropdown(); });
+      drop.appendChild(item);
+    });
+    wrapper.appendChild(drop);
+  }
+
+  function closeDropdown() {
+    const d = wrapper.querySelector('.autocomplete-dropdown'); if (d) d.remove();
+    suggestions = [];
+  }
+  function select(city) {
+    input.value = city; state[stateKey] = city; closeDropdown();
+    const clearBtn = wrapper.querySelector('.input-clear');
+    if (clearBtn) clearBtn.style.display = 'block';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CARRIER CARD HTML
+// ═══════════════════════════════════════════════════
+function carrierCardHTML(c, rank) {
+  const saved = isSaved(c);
+  return `
+  <div class="carrier-card" onclick="openCarrier(${c.id})">
+    <div class="card-top">
+      <div class="card-rank ${rank <= 3 ? 'top' : ''}">#${rank}</div>
+      <div class="card-body">
+        <div class="card-header">
+          <div>
+            <div class="card-name">${c.name}</div>
+            <div class="card-sub">Est. ${c.founded} · ${c.hq}</div>
+          </div>
+          <div class="card-actions">
+            <button class="save-btn ${saved ? 'saved' : ''}" onclick="event.stopPropagation(); doSave(${c.id})" title="${saved ? 'Unsave' : 'Save'}">📌</button>
+          </div>
+        </div>
+        <div class="card-badges-row">
+          ${stars(c.rating)}
+          <span style="font-size:11px;color:var(--text5)">(${c.reviews})</span>
+          ${safetyBadge(c.safetyRating)}
+          <span class="rate-idx">Rate: <span>${c.rateIndex}</span></span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-cell"><div class="stat-label">🚛 Fleet</div><div class="stat-val">${c.fleetSize > 0 ? c.fleetSize.toLocaleString() : 'Asset-lite'}</div></div>
+          <div class="stat-cell"><div class="stat-label">⏱ On-Time</div><div class="stat-val">${c.onTimeDelivery}%</div></div>
+          <div class="stat-cell"><div class="stat-label">💳 Pay Days</div><div class="stat-val">~${c.avgDaysToPay}d</div></div>
+          <div class="stat-cell"><div class="stat-label">📊 Credit</div><div class="stat-val">${c.creditScore}/100</div></div>
+        </div>
+        <div class="tags-row">
+          ${c.equipment.map(e => `<span class="tag tag-eq">${e}</span>`).join('')}
+          ${c.services.slice(0,4).map(s => `<span class="tag tag-sv">${s}</span>`).join('')}
+        </div>
+        <div class="badge-row">
+          ${c.trackingCapable ? '<span class="badge badge-track">📡 EDI Tracking</span>' : ''}
+          ${c.hazmat ? '<span class="badge badge-haz">☢ Hazmat</span>' : ''}
+          ${c.lanes.includes('Mexico') ? '<span class="badge badge-mex">🇲🇽 Mexico</span>' : ''}
+          ${c.lanes.includes('Canada') ? '<span class="badge badge-can">🇨🇦 Canada</span>' : ''}
+          ${c.fleetSize === 0 ? '<span class="badge badge-broker">🔁 Broker</span>' : ''}
+          ${c.tags.slice(0,2).map(t => `<span class="badge badge-tag">${t}</span>`).join('')}
+          <span class="badge-mc">${c.mc} · DOT ${c.dot}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// SEARCH TAB
+// ═══════════════════════════════════════════════════
+function renderSearchTab() {
+  return `
+  <div class="search-layout">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="section-label">▸ LANE DETAILS</div>
+      <div class="field-label">ORIGIN</div>
+      <div class="autocomplete input-with-icon" style="margin-bottom:4px">
+        <span class="input-icon">🟢</span>
+        <input id="originInput" class="input" placeholder="e.g. Los Angeles, CA" value="${state.origin}" autocomplete="off" />
+        ${state.origin ? '<button class="input-clear" onclick="clearField(\'origin\')">✕</button>' : ''}
+      </div>
+      <button class="swap-btn" onclick="swapCities()">⇅ Swap</button>
+      <div class="field-label">DESTINATION</div>
+      <div class="autocomplete input-with-icon" style="margin-bottom:12px">
+        <span class="input-icon">🔴</span>
+        <input id="destInput" class="input" placeholder="e.g. Chicago, IL" value="${state.destination}" autocomplete="off" />
+        ${state.destination ? '<button class="input-clear" onclick="clearField(\'destination\')">✕</button>' : ''}
+      </div>
+
+      <div class="section-label">▸ CARGO DETAILS</div>
+      <div class="two-col" style="margin-bottom:10px">
+        <div>
+          <div class="field-label">WEIGHT (LBS)</div>
+          <input class="input" id="weightInput" placeholder="e.g. 40000" value="${state.weight}" oninput="state.weight=this.value" />
+        </div>
+        <div>
+          <div class="field-label">COMMODITY</div>
+          <input class="input" id="commInput" placeholder="e.g. Auto Parts" value="${state.commodity}" oninput="state.commodity=this.value" />
+        </div>
+      </div>
+
+      <div class="section-label">▸ EQUIPMENT</div>
+      <div class="chips">${EQUIPMENT_TYPES.map(e => `<button class="chip ${state.equipment.includes(e)?'active':''}" onclick="toggleChip('equipment','${e}')">${e}</button>`).join('')}</div>
+
+      <div class="section-label">▸ SERVICE TYPE</div>
+      <div class="chips">${SERVICE_TYPES.map(s => `<button class="chip ${state.services.includes(s)?'active':''}" onclick="toggleChip('services','${s}')">${s}</button>`).join('')}</div>
+
+      <div class="section-label">▸ LANE COVERAGE</div>
+      <div class="chips">${LANE_TYPES.map(l => `<button class="chip ${state.lanes.includes(l)?'active':''}" onclick="toggleChip('lanes','${l}')">${l}</button>`).join('')}</div>
+
+      <div class="section-label">▸ SORT BY</div>
+      <select class="sort-select" onchange="state.sortBy=this.value">
+        <option value="rating" ${state.sortBy==='rating'?'selected':''}>⭐ Rating</option>
+        <option value="ontime" ${state.sortBy==='ontime'?'selected':''}>⏱ On-Time %</option>
+        <option value="pay" ${state.sortBy==='pay'?'selected':''}>💳 Fastest Pay</option>
+        <option value="fleet" ${state.sortBy==='fleet'?'selected':''}>🚛 Fleet Size</option>
+      </select>
+
+      <div class="section-label">▸ AI NOTES (한국어 가능)</div>
+      <textarea class="notes-area" rows="3" placeholder="예: Hazmat 필요, liftgate 있어야 함, 주말 픽업 가능한지..." oninput="state.notes=this.value">${state.notes}</textarea>
+
+      <button class="search-btn" onclick="doSearch()" ${state.loading?'disabled':''}>
+        ${state.loading ? '⏳ Searching...' : '🔍 Find Carriers + AI Analysis'}
+      </button>
+      ${(state.equipment.length||state.services.length||state.lanes.length) ? `<button class="clear-btn" onclick="clearFilters()">Clear Filters</button>` : ''}
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      ${renderResults()}
+    </div>
+  </div>`;
+}
+
+function renderResults() {
+  if (!state.results && !state.loading) {
+    return `<div class="empty-state">
+      <div class="empty-icon">🚛</div>
+      <div class="empty-title">Start your carrier search</div>
+      <div class="empty-sub">Enter origin &amp; destination, select filters, then hit Search. AI will analyze and recommend the best carriers for your lane.</div>
+    </div>`;
+  }
+  if (state.loading) {
+    return `<div class="loading-state"><div class="loading-inner">
+      <div class="loading-spin">⚙</div>
+      <div class="loading-text">FILTERING CARRIERS...</div>
+    </div></div>`;
+  }
+
+  let html = '';
+
+  // AI Box
+  if (state.aiLoading || state.aiText) {
+    html += `<div class="ai-box">
+      <div class="ai-header">
+        <div class="ai-dot" style="${state.aiLoading ? 'background:var(--border3);box-shadow:none' : ''}"></div>
+        <span class="ai-label">AI LANE ANALYSIS · CLAUDE SONNET</span>
+        ${state.aiLoading ? '<span style="font-size:10px;color:var(--text6);font-family:IBM Plex Mono,monospace">analyzing...</span>' : ''}
+      </div>
+      <div class="ai-text">${state.aiLoading ? 'Generating analysis...' : (state.aiText || '')}</div>
+    </div>`;
+  }
+
+  // Lane Visual
+  if (state.origin || state.destination) {
+    html += `<div class="lane-vis">
+      <span class="lane-vis-city" style="color:var(--green)">${state.origin || 'Origin'}</span>
+      <div class="lane-vis-line"><span class="lane-vis-truck">🚛</span></div>
+      <span class="lane-vis-city" style="color:var(--blue-text)">${state.destination || 'Destination'}</span>
+      <span class="lane-vis-badge">OTR</span>
+    </div>`;
+  }
+
+  // Results header
+  html += `<div class="results-header">
+    <span class="results-count"><span style="color:var(--blue);font-weight:700">${state.results.length}</span> carriers matched</span>
+    <span class="results-hint">Click a carrier for full profile · 📌 to save</span>
+  </div>`;
+
+  // Cards
+  html += `<div class="carrier-cards">${state.results.map((c, i) => carrierCardHTML(c, i + 1)).join('')}</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════════════════
+// LOOKUP TAB
+// ═══════════════════════════════════════════════════
+function renderLookupTab() {
+  let resultHTML = '';
+  if (state.mcResult === 'NOT_FOUND') {
+    resultHTML = `<div class="not-found">
+      <div class="not-found-icon">❌</div>
+      <div class="not-found-text">No carrier found in database</div>
+      <div class="not-found-hint">Try FMCSA SAFER at <a href="https://safer.fmcsa.dot.gov" target="_blank">safer.fmcsa.dot.gov</a> for full registry</div>
+    </div>`;
+  } else if (state.mcResult) {
+    const c = state.mcResult;
+    resultHTML = `<div class="result-box">
+      <div class="result-name">${c.name}</div>
+      <div class="info-grid">
+        ${[['MC Number',c.mc],['DOT Number',c.dot],['Authority',c.authority],['Safety Rating',c.safetyRating],['HQ',c.hq],['Founded',c.founded],['Fleet Size',c.fleetSize>0?c.fleetSize.toLocaleString():'Asset-light'],['Contact',c.contact],['On-Time %',c.onTimeDelivery+'%'],['Credit Score',c.creditScore+'/100']].map(([k,v])=>`
+          <div class="info-cell"><div class="info-key">${k}</div><div class="info-val">${v}</div></div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" onclick="state.selectedCarrier=CARRIERS.find(x=>x.id===${c.id});renderModal()">View Full Profile</button>
+        <button class="btn-secondary" onclick="doSave(${c.id})">${isSaved(c) ? '✓ Saved' : '📌 Save Carrier'}</button>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="tab-content">
+    <div class="tab-title">🔎 Carrier Lookup</div>
+    <div class="tab-sub">Search by MC#, DOT#, or carrier name</div>
+    <div class="lookup-row">
+      <input class="lookup-input" id="mcInput" placeholder="e.g. MC-042958 or 804436 or J.B. Hunt" value="${state.mcSearch}" onkeydown="if(event.key==='Enter')doMCLookup()" oninput="state.mcSearch=this.value" />
+      <button class="lookup-btn" onclick="doMCLookup()">Look Up</button>
+    </div>
+    ${resultHTML}
+    <div class="resources-box">
+      <div class="resources-title">💡 EXTERNAL RESOURCES</div>
+      ${[['FMCSA SAFER System','safer.fmcsa.dot.gov','Official authority & safety lookup'],['FMCSA L&I Database','li-public.fmcsa.dot.gov','License & insurance verification'],['FMCSA SMS','ai.fmcsa.dot.gov/SMS','Safety Measurement System'],['FreightWaves','freightwaves.com','Market rate data & news'],['DAT Load Board','dat.com','Load board & rate analytics'],].map(([n,u,d])=>`
+        <div class="resource-row">
+          <div><div class="resource-name">${n}</div><div class="resource-desc">${d}</div></div>
+          <a class="resource-link" href="https://${u}" target="_blank">↗ ${u}</a>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// SAVED TAB
+// ═══════════════════════════════════════════════════
+function renderSavedTab() {
+  return `<div class="saved-wide">
+    <div class="saved-header">
+      <div>
+        <div class="tab-title">📌 Saved Carriers</div>
+        <div class="tab-sub" style="margin-bottom:0">${state.saved.length} carriers saved · Click to view profile or generate RFQ</div>
+      </div>
+      ${state.saved.length > 0 ? `<button class="compare-btn" onclick="setTab('compare')">⚖ Compare Top 3</button>` : ''}
+    </div>
+    ${state.saved.length === 0 ?
+      `<div class="empty-state"><div class="empty-icon">📌</div><div class="empty-title" style="color:var(--text7)">No saved carriers</div><div class="empty-sub">Search and pin carriers to save them here.</div></div>` :
+      `<div class="carrier-cards">${state.saved.map((c,i) => carrierCardHTML(c, i+1)).join('')}</div>`
+    }
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// COMPARE TAB
+// ═══════════════════════════════════════════════════
+function renderCompareTab() {
+  const list = state.saved.slice(0, 3);
+  return `<div class="tab-content" style="max-width:1020px">
+    <div class="tab-title">⚖ Carrier Comparison</div>
+    <div class="tab-sub">Comparing up to 3 saved carriers side by side</div>
+    ${list.length === 0 ?
+      `<div class="empty-state"><div class="empty-icon" style="font-size:36px;opacity:.2">⚖</div><div class="empty-sub">Save carriers first to compare them.</div></div>` :
+      `<div class="compare-wrap"><table class="compare-table">
+        <thead><tr>
+          <td class="compare-row-label">METRIC</td>
+          ${list.map(c => `<th class="compare-th-cell"><div class="compare-th-name">${c.shortName}</div><div class="compare-th-mc">${c.mc}</div></th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${[
+            { label:'Rating', render: c => stars(c.rating) },
+            { label:'Safety', render: c => safetyBadge(c.safetyRating) },
+            { label:'On-Time %', render: (c,all) => { const best=Math.max(...all.map(x=>x.onTimeDelivery)); return `<span class="compare-val ${c.onTimeDelivery===best?'compare-best':''}">${c.onTimeDelivery}%${c.onTimeDelivery===best?' ✓':''}</span>`; } },
+            { label:'Days to Pay', render: (c,all) => { const best=Math.min(...all.map(x=>x.avgDaysToPay)); return `<span class="compare-val ${c.avgDaysToPay===best?'compare-best':''}">${c.avgDaysToPay}d${c.avgDaysToPay===best?' ✓':''}</span>`; } },
+            { label:'Credit Score', render: (c,all) => { const best=Math.max(...all.map(x=>x.creditScore)); return `<span class="compare-val ${c.creditScore===best?'compare-best':''}">${c.creditScore}/100${c.creditScore===best?' ✓':''}</span>`; } },
+            { label:'Fleet Size', render: c => `<span class="compare-val">${c.fleetSize>0?c.fleetSize.toLocaleString():'Asset-light'}</span>` },
+            { label:'Rate Index', render: c => `<span style="color:var(--yellow);font-family:IBM Plex Mono,monospace;font-size:14px">${c.rateIndex}</span>` },
+            { label:'Hazmat', render: c => `<span class="compare-val" style="color:${c.hazmat?'var(--green)':'var(--text6)'}">${c.hazmat?'✓ Yes':'✗ No'}</span>` },
+            { label:'EDI Tracking', render: c => `<span class="compare-val" style="color:${c.trackingCapable?'var(--green)':'var(--text6)'}">${c.trackingCapable?'✓ Yes':'✗ No'}</span>` },
+            { label:'Mexico / Canada', render: c => `<span class="compare-val">${[c.lanes.includes('Mexico')&&'🇲🇽',c.lanes.includes('Canada')&&'🇨🇦'].filter(Boolean).join(' ')||'—'}</span>` },
+            { label:'Contact', render: c => `<span style="color:var(--blue-text);font-family:IBM Plex Mono,monospace;font-size:11px">${c.contact}</span>` },
+          ].map(row => `<tr style="border-bottom:1px solid #0A0E1A">
+            <td class="compare-row-label">${row.label}</td>
+            ${list.map(c => `<td class="compare-td">${row.render(c, list)}</td>`).join('')}
+          </tr>`).join('')}
+          <tr>
+            <td class="compare-row-label"></td>
+            ${list.map(c => `<td class="compare-td"><button class="compare-rfq-btn" onclick="openRFQ(${c.id})">📧 RFQ Email</button></td>`).join('')}
+          </tr>
+        </tbody>
+      </table></div>`
+    }
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL: CARRIER DETAIL
+// ═══════════════════════════════════════════════════
+function renderModal() {
+  const overlay = document.getElementById('modalOverlay');
+  if (!state.selectedCarrier && !state.rfqCarrier) { overlay.style.display = 'none'; return; }
+  overlay.style.display = 'flex';
+
+  if (state.rfqCarrier) {
+    const c = state.rfqCarrier;
+    overlay.innerHTML = `<div class="modal-box" style="border-color:var(--blue-dark)">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">📧 RFQ Email Generator</div>
+          <div class="modal-sub">To: ${c.name} · ${c.contact}</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      ${state.rfqLoading ? `<div style="text-align:center;padding:40px;color:var(--blue);font-family:IBM Plex Mono,monospace;font-size:12px">⚙ Generating professional RFQ...</div>` :
+        `<pre class="rfq-pre">${state.rfqText || ''}</pre>
+        <button class="btn-copy ${state.rfqCopied?'copied':''}" onclick="copyRFQ()">${state.rfqCopied ? '✓ Copied to Clipboard!' : '📋 Copy Email'}</button>`
+      }
+    </div>`;
+    overlay.onclick = function(e) { if (e.target === overlay) closeModal(); };
+    return;
+  }
+
+  const c = state.selectedCarrier;
+  overlay.innerHTML = `<div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${c.name}</div>
+        <div class="modal-sub">Est. ${c.founded} · HQ: ${c.hq}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="info-grid">
+      ${[['MC Number',c.mc],['DOT Number',c.dot],['Authority',c.authority],['Safety Rating',c.safetyRating],['Fleet Size',c.fleetSize>0?c.fleetSize.toLocaleString()+' units':'Asset-light (Broker)'],['Drivers',c.drivers>0?c.drivers.toLocaleString():'Independent network'],['Avg Days to Pay',c.avgDaysToPay+' days'],['Credit Score',c.creditScore+'/100'],['On-Time Delivery',c.onTimeDelivery+'%'],['Rate Index',c.rateIndex],['Phone',c.contact],['Website',c.website]].map(([k,v])=>`
+        <div class="info-cell"><div class="info-key">${k}</div><div class="info-val">${v}</div></div>`).join('')}
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="section-label">SPECIALTIES</div>
+      <div class="tags-row">${c.specialties.map(s=>`<span class="tag tag-sv">${s}</span>`).join('')}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="openRFQ(${c.id});state.selectedCarrier=null">📧 Generate RFQ Email</button>
+      <a class="btn-secondary" href="https://${c.website}" target="_blank">↗ Visit Website</a>
+    </div>
+  </div>`;
+  overlay.onclick = function(e) { if (e.target === overlay) closeModal(); };
+}
+
+function closeModal() {
+  state.selectedCarrier = null;
+  state.rfqCarrier = null;
+  state.rfqText = '';
+  state.rfqLoading = false;
+  state.rfqCopied = false;
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+async function openRFQ(carrierId) {
+  const c = CARRIERS.find(x => x.id === carrierId);
+  state.rfqCarrier = c; state.rfqText = ''; state.rfqLoading = true; state.rfqCopied = false;
+  renderModal();
+
+  const prompt = `You are a freight forwarding professional at Hyundai Platform Corporation in Los Angeles. Generate a professional RFQ (Request for Quote) email to ${c.name} for trucking service.
+
+Details:
+- Origin: ${state.origin || 'TBD'}
+- Destination: ${state.destination || 'TBD'}
+- Equipment: ${state.equipment.length > 0 ? state.equipment.join(', ') : 'Dry Van'}
+- Weight: ${state.weight || 'TBD'} lbs
+- Commodity: ${state.commodity || 'General Freight'}
+- Carrier Contact: ${c.contact}
+- Carrier MC#: ${c.mc}
+
+Write a professional, concise email that:
+1. Introduces Hyundai Platform Corporation briefly (logistics company, LA based)
+2. Requests rate quote for this lane with specific details
+3. Asks about availability, transit time, and capacity
+4. Asks about tracking capabilities (EDI/API/TMS)
+5. Professional closing with contact info
+
+Format: Subject line first on its own line, then blank line, then email body. Keep it under 220 words. Professional and direct tone.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    state.rfqText = data.content?.[0]?.text || 'Error generating email.';
+  } catch { state.rfqText = 'Network error. Please try again.'; }
+
+  state.rfqLoading = false;
+  renderModal();
+}
+
+function copyRFQ() {
+  navigator.clipboard.writeText(state.rfqText).then(() => {
+    state.rfqCopied = true; renderModal();
+    setTimeout(() => { state.rfqCopied = false; renderModal(); }, 2000);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════
+window.openCarrier = function(id) { state.selectedCarrier = CARRIERS.find(c => c.id === id); renderModal(); };
+window.doSave = function(id) { const c = CARRIERS.find(x => x.id === id); if (c) toggleSave(c); };
+window.toggleChip = function(key, val) { state[key] = toggle(val, state[key]); renderTabContent(); };
+window.clearField = function(key) { state[key] = ''; renderTabContent(); setTimeout(() => { const el = document.getElementById(key === 'origin' ? 'originInput' : 'destInput'); if (el) { el.value = ''; setupAutocomplete(el.id, key); } }, 0); };
+window.swapCities = function() { [state.origin, state.destination] = [state.destination, state.origin]; renderTabContent(); setTimeout(() => { setupAutocomplete('originInput', 'origin'); setupAutocomplete('destInput', 'destination'); }, 0); };
+window.clearFilters = function() { state.equipment = []; state.services = []; state.lanes = []; renderTabContent(); };
+window.setTab = function(t) { state.tab = t; render(); };
+window.openRFQ = openRFQ;
+window.closeModal = closeModal;
+window.copyRFQ = copyRFQ;
+
+window.doMCLookup = function() {
+  const q = state.mcSearch.trim().toLowerCase();
+  if (!q) return;
+  const found = CARRIERS.find(c =>
+    c.mc.toLowerCase().includes(q) ||
+    c.dot.toLowerCase().includes(q) ||
+    c.name.toLowerCase().includes(q)
+  );
+  state.mcResult = found || 'NOT_FOUND';
+  renderTabContent();
+};
+
+window.doSearch = async function() {
+  state.loading = true; state.results = null; state.aiText = ''; state.aiLoading = false;
+  renderTabContent();
+
+  let filtered = CARRIERS.filter(c => {
+    const eq = state.equipment.length === 0 || state.equipment.some(e => c.equipment.includes(e));
+    const sv = state.services.length === 0 || state.services.some(s => c.services.includes(s));
+    const ln = state.lanes.length === 0 || state.lanes.some(l => c.lanes.some(cl => cl.includes(l)));
+    return eq && sv && ln;
+  });
+
+  filtered.sort((a, b) => {
+    if (state.sortBy === 'rating') return b.rating - a.rating;
+    if (state.sortBy === 'ontime') return b.onTimeDelivery - a.onTimeDelivery;
+    if (state.sortBy === 'pay') return a.avgDaysToPay - b.avgDaysToPay;
+    if (state.sortBy === 'fleet') return b.fleetSize - a.fleetSize;
+    return 0;
+  });
+
+  state.results = filtered;
+  state.loading = false;
+  renderTabContent();
+
+  // AI
+  state.aiLoading = true;
+  renderTabContent();
+
+  const prompt = `당신은 미국 물류/프레이트 포워딩 전문가입니다. 다음 조건의 OTR 트럭킹 레인을 분석해주세요:
+
+출발지: ${state.origin || '미지정'}
+목적지: ${state.destination || '미지정'}
+장비: ${state.equipment.length > 0 ? state.equipment.join(', ') : '미지정'}
+서비스: ${state.services.length > 0 ? state.services.join(', ') : '미지정'}
+커버리지: ${state.lanes.length > 0 ? state.lanes.join(', ') : '미지정'}
+화물 무게: ${state.weight || '미지정'} lbs
+화물 종류: ${state.commodity || '미지정'}
+특이사항: ${state.notes || '없음'}
+
+검색된 캐리어: ${filtered.slice(0,5).map(c=>c.name).join(', ')}
+
+다음 형식으로 한국어로 분석해주세요:
+
+🚛 레인 분석
+(이 레인의 특성, 수요/공급, 시장 상황 2-3문장)
+
+🏆 TOP 3 추천 캐리어 & 이유
+1. [캐리어명] — 이유
+2. [캐리어명] — 이유
+3. [캐리어명] — 이유
+
+💰 레이트 네고 팁
+• 팁 1
+• 팁 2
+• 팁 3
+
+⚠️ 주의사항 / 컴플라이언스
+(관련 규정, 주의할 점)`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    state.aiText = data.content?.[0]?.text || '';
+  } catch { state.aiText = 'AI 분석 중 오류가 발생했습니다.'; }
+
+  state.aiLoading = false;
+  renderTabContent();
+};
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function renderNavTabs() {
+  const tabs = [
+    { id:'search', label:'🔍 Lane Search' },
+    { id:'lookup', label:'🔎 MC Lookup' },
+    { id:'saved', label:`📌 Saved (${state.saved.length})` },
+    { id:'compare', label:`⚖ Compare (${Math.min(state.saved.length,3)})` },
+  ];
+  document.getElementById('navTabs').innerHTML = tabs.map(t =>
+    `<button class="nav-tab ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">${t.label}</button>`
+  ).join('');
+  document.getElementById('carrierCount').textContent = `${CARRIERS.length} CARRIERS · LIVE DB`;
+}
+
+function renderTabContent() {
+  const main = document.getElementById('mainContent');
+  if (state.tab === 'search') {
+    main.innerHTML = renderSearchTab();
+    setupAutocomplete('originInput', 'origin');
+    setupAutocomplete('destInput', 'destination');
+  } else if (state.tab === 'lookup') {
+    main.innerHTML = renderLookupTab();
+    const inp = document.getElementById('mcInput');
+    if (inp) inp.value = state.mcSearch;
+  } else if (state.tab === 'saved') {
+    main.innerHTML = renderSavedTab();
+  } else if (state.tab === 'compare') {
+    main.innerHTML = renderCompareTab();
+  }
+  renderNavTabs();
+}
+
+function render() {
+  renderNavTabs();
+  renderTabContent();
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
