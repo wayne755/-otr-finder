@@ -180,10 +180,8 @@ textarea{font-family:inherit}
 </div>
 
 <script>
-// ─── CITY DICTIONARY (no API needed) ─────────────────────────────
-// 한국어 → English 도시 매핑
+// ─── CITY DICTIONARY ─────────────────────────────────────────────
 const CITY_MAP={
-  // 주요 도시 한글 표기
   '엘에이':'Los Angeles, CA','로스앤젤레스':'Los Angeles, CA','로스엔젤레스':'Los Angeles, CA','LA':'Los Angeles, CA','라':'Los Angeles, CA',
   '시카고':'Chicago, IL','쉬카고':'Chicago, IL',
   '달라스':'Dallas, TX','댈러스':'Dallas, TX','달러스':'Dallas, TX',
@@ -234,23 +232,17 @@ const CITY_MAP={
   '롱비치':'Long Beach, CA','롱 비치':'Long Beach, CA',
   '프레즈노':'Fresno, CA',
   '리버사이드':'Riverside, CA',
-  // Canada
   '토론토':'Toronto, ON','밴쿠버':'Vancouver, BC','몬트리올':'Montreal, QC','캘거리':'Calgary, AB',
-  // Mexico
   '몬테레이':'Monterrey, Mexico','멕시코':'Monterrey, Mexico',
-  // 방향/연결 전치사 (파싱에서 제거)
   '에서':'','-에서':'','까지':'','-까지':'','to':'','from':'','→':'','-':'',',':'',
 };
 
 const CITIES_EN=['Albuquerque, NM','Arlington, TX','Atlanta, GA','Austin, TX','Baltimore, MD','Boston, MA','Charlotte, NC','Chicago, IL','Cincinnati, OH','Cleveland, OH','Columbus, OH','Dallas, TX','Denver, CO','Detroit, MI','El Paso, TX','Fort Worth, TX','Houston, TX','Indianapolis, IN','Jacksonville, FL','Kansas City, MO','Laredo, TX','Las Vegas, NV','Long Beach, CA','Los Angeles, CA','Louisville, KY','Memphis, TN','Miami, FL','Milwaukee, WI','Minneapolis, MN','Nashville, TN','New Orleans, LA','New York, NY','Newark, NJ','Oakland, CA','Oklahoma City, OK','Orlando, FL','Philadelphia, PA','Phoenix, AZ','Pittsburgh, PA','Portland, OR','Raleigh, NC','Sacramento, CA','San Antonio, TX','San Diego, CA','San Francisco, CA','San Jose, CA','Seattle, WA','St. Louis, MO','Tampa, FL','Tucson, AZ','Washington, DC','Port of Los Angeles, CA','Port of Long Beach, CA','Port of Houston, TX','Port of Savannah, GA','Port of New York, NJ','Chicago Rail Hub, IL','Dallas Freight Hub, TX','Toronto, ON','Vancouver, BC','Monterrey, Mexico','Laredo Border, TX'];
 
-// 도시명 파싱 — API 없이 딕셔너리 + 영문 매칭
 function parseCityFromText(text){
-  // 1) 딕셔너리에서 한글 도시 찾기
   for(const [ko,en] of Object.entries(CITY_MAP)){
     if(en&&text.includes(ko))return en;
   }
-  // 2) 영문 도시명 직접 매칭
   const lower=text.toLowerCase();
   for(const city of CITIES_EN){
     const name=city.split(',')[0].toLowerCase();
@@ -259,12 +251,8 @@ function parseCityFromText(text){
   return '';
 }
 
-// 레인 파싱: "A에서 B까지" → {origin, dest}
 function parseLaneText(text){
-  // 전처리: 정규화
   let t=text.trim();
-
-  // 패턴 1: "A에서 B" / "A→B" / "A to B" / "A - B"
   const patterns=[
     /(.+?)에서\s*(.+?)(?:까지|로|으로)?$/,
     /(.+?)\s*→\s*(.+)/,
@@ -272,7 +260,6 @@ function parseLaneText(text){
     /(.+?)\s*[-–]\s*(.+)/,
     /(.+?)\s+from\s+(.+)/i,
   ];
-
   for(const pat of patterns){
     const m=t.match(pat);
     if(m){
@@ -283,16 +270,12 @@ function parseLaneText(text){
       if(origin||dest)return{origin,dest};
     }
   }
-
-  // 패턴 2: 두 도시가 공백으로 나열 → 첫번째=origin, 두번째=dest
-  // 한글 키워드로 두 도시 찾기
   const found=[];
   for(const [ko,en] of Object.entries(CITY_MAP)){
     if(en&&t.includes(ko)&&!found.find(f=>f.en===en)){
       found.push({ko,en,idx:t.indexOf(ko)});
     }
   }
-  // 영문 도시도 탐색
   const lower=t.toLowerCase();
   for(const city of CITIES_EN){
     const name=city.split(',')[0].toLowerCase();
@@ -323,7 +306,7 @@ const C=[
   {id:12,n:'Universal Truckload',s:'Universal',mc:'MC-367544',dot:'2110552',yr:1994,hq:'Warren, MI',fl:3000,dr:4500,auth:'Active',safe:'Satisfactory',svc:['OTR','Flatbed','Specialized','Heavy Haul'],eq:['Flatbed','Dry Van','Container','Specialized'],ln:['Nationwide','Canada','Mexico'],spec:['Automotive','Steel'],ph:'1-586-920-0100',wb:'utsCO.com',pay:32,cr:90,ot:91,edi:true,haz:false,rt:'$$$',rat:4.1,rev:310},
 ];
 
-// 운임 추정 테이블 (API 없이 오프라인 계산)
+// ─── RATE TABLES ─────────────────────────────────────────────────
 const RATE_TABLE={
   'Dry Van':{rpm:2.5,base:0.9},
   'Refrigerated (Reefer)':{rpm:3.1,base:1.15},
@@ -332,46 +315,25 @@ const RATE_TABLE={
   'Specialized / Heavy Haul':{rpm:3.8,base:1.3},
   'Tanker / Bulk':{rpm:3.4,base:1.2},
 };
-// 주요 레인 거리 (miles)
 const DIST_TABLE={
-  'Los Angeles, CA|Chicago, IL':2015,'Chicago, IL|Los Angeles, CA':2015,
-  'Los Angeles, CA|New York, NY':2800,'New York, NY|Los Angeles, CA':2800,
-  'Los Angeles, CA|Dallas, TX':1435,'Dallas, TX|Los Angeles, CA':1435,
-  'Los Angeles, CA|Houston, TX':1550,'Houston, TX|Los Angeles, CA':1550,
-  'Los Angeles, CA|Atlanta, GA':2180,'Atlanta, GA|Los Angeles, CA':2180,
-  'Los Angeles, CA|Miami, FL':2760,'Miami, FL|Los Angeles, CA':2760,
-  'Los Angeles, CA|Seattle, WA':1135,'Seattle, WA|Los Angeles, CA':1135,
-  'Los Angeles, CA|Denver, CO':1020,'Denver, CO|Los Angeles, CA':1020,
-  'Los Angeles, CA|Phoenix, AZ':370,'Phoenix, AZ|Los Angeles, CA':370,
-  'Los Angeles, CA|Las Vegas, NV':270,'Las Vegas, NV|Los Angeles, CA':270,
-  'Los Angeles, CA|San Francisco, CA':380,'San Francisco, CA|Los Angeles, CA':380,
-  'Chicago, IL|New York, NY':790,'New York, NY|Chicago, IL':790,
-  'Chicago, IL|Dallas, TX':920,'Dallas, TX|Chicago, IL':920,
-  'Chicago, IL|Atlanta, GA':720,'Atlanta, GA|Chicago, IL':720,
-  'Chicago, IL|Miami, FL':1380,'Miami, FL|Chicago, IL':1380,
-  'Chicago, IL|Houston, TX':1090,'Houston, TX|Chicago, IL':1090,
-  'Dallas, TX|New York, NY':1550,'New York, NY|Dallas, TX':1550,
-  'Dallas, TX|Atlanta, GA':780,'Atlanta, GA|Dallas, TX':780,
-  'Dallas, TX|Miami, FL':1310,'Miami, FL|Dallas, TX':1310,
-  'Dallas, TX|Houston, TX':240,'Houston, TX|Dallas, TX':240,
-  'Dallas, TX|Denver, CO':1020,'Denver, CO|Dallas, TX':1020,
-  'New York, NY|Atlanta, GA':880,'Atlanta, GA|New York, NY':880,
-  'New York, NY|Miami, FL':1280,'Miami, FL|New York, NY':1280,
-  'Houston, TX|Atlanta, GA':790,'Atlanta, GA|Houston, TX':790,
-  'Houston, TX|Miami, FL':1190,'Miami, FL|Houston, TX':1190,
-  'Seattle, WA|Chicago, IL':2060,'Chicago, IL|Seattle, WA':2060,
-  'Seattle, WA|Dallas, TX':2110,'Dallas, TX|Seattle, WA':2110,
-  'Los Angeles, CA|Laredo, TX':1250,'Laredo, TX|Los Angeles, CA':1250,
-  'Los Angeles, CA|Laredo Border, TX':1250,'Laredo Border, TX|Los Angeles, CA':1250,
-  'Los Angeles, CA|El Paso, TX':800,'El Paso, TX|Los Angeles, CA':800,
+  'Los Angeles, CA|Chicago, IL':2015,'Los Angeles, CA|New York, NY':2800,'Los Angeles, CA|Dallas, TX':1435,
+  'Los Angeles, CA|Houston, TX':1550,'Los Angeles, CA|Atlanta, GA':2180,'Los Angeles, CA|Miami, FL':2760,
+  'Los Angeles, CA|Seattle, WA':1135,'Los Angeles, CA|Denver, CO':1020,'Los Angeles, CA|Phoenix, AZ':370,
+  'Los Angeles, CA|Las Vegas, NV':270,'Los Angeles, CA|San Francisco, CA':380,
+  'Chicago, IL|New York, NY':790,'Chicago, IL|Dallas, TX':920,'Chicago, IL|Atlanta, GA':720,
+  'Chicago, IL|Miami, FL':1380,'Chicago, IL|Houston, TX':1090,
+  'Dallas, TX|New York, NY':1550,'Dallas, TX|Atlanta, GA':780,'Dallas, TX|Miami, FL':1310,
+  'Dallas, TX|Houston, TX':240,'Dallas, TX|Denver, CO':1020,
+  'New York, NY|Atlanta, GA':880,'New York, NY|Miami, FL':1280,
+  'Houston, TX|Atlanta, GA':790,'Houston, TX|Miami, FL':1190,
+  'Seattle, WA|Chicago, IL':2060,'Seattle, WA|Dallas, TX':2110,
+  'Los Angeles, CA|Laredo, TX':1250,'Los Angeles, CA|Laredo Border, TX':1250,'Los Angeles, CA|El Paso, TX':800,
 };
 function estimateDist(origin,dest){
   const key=`${origin}|${dest}`;
   if(DIST_TABLE[key])return DIST_TABLE[key];
-  // 역방향
   const rkey=`${dest}|${origin}`;
   if(DIST_TABLE[rkey])return DIST_TABLE[rkey];
-  // 기본값: 1200 miles
   return 1200;
 }
 function calcRate(origin,dest,eq){
@@ -385,7 +347,7 @@ function calcRate(origin,dest,eq){
   return{dist,low,mid,high,rpmLow:(rpmMid*0.88).toFixed(2),rpmMid:rpmMid.toFixed(2),rpmHigh:(rpmMid*1.16).toFixed(2),transit};
 }
 
-// ─── AI CALL (for RFQ email & analysis text only) ────────────────
+// ─── AI CALL ─────────────────────────────────────────────────────
 async function aiCall(prompt,maxTokens=500){
   const r=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -467,12 +429,10 @@ function startCarrier(){
 function handleLaneInput(text){
   const {origin,dest}=parseLaneText(text);
   ST.origin=origin;ST.dest=dest;
-
   if(!origin&&!dest){
     addAI('출발지나 목적지를 잘 못 찾았어요. 다시 한번 말씀해주세요.');
     ST.pending='__lane__';return;
   }
-
   const confirmed=`${origin||'미정'} → ${dest||'미정'}`;
   addAI(`${confirmed} 확인했습니다.\n\n어떤 장비(Equipment)가 필요하신가요?`);
   addOpts([
@@ -523,7 +483,6 @@ async function askSpecial(){
 // ─── CARRIER SEARCH ──────────────────────────────────────────────
 async function runCarrierSearch(){
   addThink();await slp(500);rmThink();
-
   const eqMap={
     'Dry Van':['Dry Van'],
     'Refrigerated (Reefer)':['Refrigerated'],
@@ -540,7 +499,6 @@ async function runCarrierSearch(){
     return eq&&sv&&ln&&haz;
   }).sort((a,b)=>b.rat-a.rat);
 
-  // lane vis
   if(ST.origin||ST.dest){
     const lv=document.createElement('div');lv.className='res';
     lv.innerHTML=`<div class="lvis">
@@ -554,13 +512,11 @@ async function runCarrierSearch(){
     ch.appendChild(lv);
   }
 
-  // analysis box (text only, no API needed for basic info)
   const aiW=document.createElement('div');aiW.className='res';
   const top3=f.slice(0,3).map((c,i)=>`${i+1}. ${c.n} — ${['레이트 경쟁력 높음','전국 커버리지 우수','On-Time 성과 우수'][i]}`).join('\n');
   aiW.innerHTML=`<div class="aib"><div class="aib-hdr">매칭 결과</div>${ST.origin||'?'} → ${ST.dest||'?'} 레인에서 ${f.length}개 캐리어를 찾았습니다.\n\n추천 TOP 3\n${top3}\n\n운임 조회는 아래 버튼을 눌러주세요.</div>`;
   ch.appendChild(aiW);
 
-  // cards
   const cW=document.createElement('div');cW.className='res';
   cW.innerHTML=`<div class="res-hdr">캐리어 ${f.length}개</div><div class="cards">${f.map((c,i)=>cHTML(c,i+1)).join('')}</div>`;
   ch.appendChild(cW);
@@ -643,19 +599,15 @@ function showRateResult(origin,dest,eq,weight){
     </div>`;
     ch.appendChild(lv);
   }
-
   const r=calcRate(origin,dest,eq);
   const maxR=r.high;
-
-  // market condition 간단 판단
   const dist=r.dist;
-  const mkt=dist>1800?'Balanced · 균형':'Balanced · 균형';
+  const mkt=dist>2000?'Tight · 공급 부족':dist>1000?'Balanced · 균형':'Soft · 공급 우세';
   const tips=[
     '화물 픽업/딜리버리 유연성을 제공하면 더 좋은 레이트를 받을 수 있습니다.',
     '복수 캐리어에 동시 RFQ를 보내 경쟁 입찰을 유도하세요.',
     '월간 볼륨을 약속하면 장기 계약 할인을 협상할 수 있습니다.',
   ];
-
   const rw=document.createElement('div');rw.className='res';
   rw.innerHTML=`<div class="ratebox">
     <div class="ratebox-hdr">운임 추정</div>
@@ -679,7 +631,6 @@ function showRateResult(origin,dest,eq,weight){
     <div class="rate-note">※ 시장 평균 기반 추정치입니다. 실제 운임은 계절·수급에 따라 달라질 수 있습니다.<br/>정확한 현재 시세: <a href="https://dat.com" target="_blank" style="color:var(--g600);text-decoration:underline">DAT.com</a> · <a href="https://freightwaves.com" target="_blank" style="color:var(--g600);text-decoration:underline">FreightWaves</a></div>
   </div>`;
   ch.appendChild(rw);scr();
-
   setTimeout(()=>{
     addOpts([
       {l:'이 레인 캐리어 찾기'},
@@ -704,8 +655,9 @@ function startMC(){
     document.getElementById('ui').focus();
   },300);
 }
+
 async function doMC(q){
-  // 로컬 DB 먼저 확인
+  // 1) 로컬 DB 먼저 확인
   const local=C.find(c=>
     c.mc.toLowerCase().includes(q.toLowerCase())||
     c.dot.toLowerCase().includes(q.toLowerCase())||
@@ -725,7 +677,7 @@ async function doMC(q){
     return;
   }
 
-  // FMCSA API 조회
+  // 2) FMCSA API 조회
   addThink();
   const WORKER='https://otr-finder-api.wayneslee1018.workers.dev';
   let apiUrl='';
@@ -740,35 +692,43 @@ async function doMC(q){
     const data=await res.json();
     rmThink();
 
-    // 데이터 파싱
-    const carriers=data.content||[];
+    // ✅ 수정된 파싱 — content 배열에서 carrier 객체 추출
+    const carriers=(data.content||[]).map(item=>item.carrier||item).filter(Boolean);
+
     if(!carriers.length){
       addAI(`"${q}" — FMCSA에서도 찾지 못했습니다.\n공식 조회: <a href="https://safer.fmcsa.dot.gov" target="_blank" style="color:var(--g800);text-decoration:underline">safer.fmcsa.dot.gov</a>`);
       ST.pending='__mc__';return;
     }
 
-    // 결과를 카드로 표시
     const w=document.createElement('div');w.className='res';
     w.innerHTML=`<div class="res-hdr">FMCSA 검색 결과 ${carriers.length}개</div>
-    <div class="cards">${carriers.slice(0,5).map((item,i)=>{
-      const c=item.carrier||item;
+    <div class="cards">${carriers.slice(0,5).map((c,i)=>{
       const name=c.legalName||c.dbaName||'Unknown';
-      const mc=c.dotNumber||'';
       const auth=c.allowedToOperate==='Y'?'Active':'Inactive';
-      const city=`${c.phyCity||''}, ${c.phyState||''}`;
+      const city=`${c.phyCity||''}, ${c.phyState||''}`.trim().replace(/^,\s*/,'');
+      const safeRating=c.safetyRating||'N/A';
+      const trucks=c.totalPowerUnits>0?c.totalPowerUnits.toLocaleString():'—';
+      const drivers=c.totalDrivers>0?c.totalDrivers.toLocaleString():'—';
       return`<div class="cc">
         <div class="cc-top">
-          <div class="cc-rnk ${i===0?'r1':''}">${i+1}</div>
+          <div class="cc-rnk ${i===0?'r1':i===1?'r2':i===2?'r3':''}">${i+1}</div>
           <div class="cc-nw">
             <div class="cc-name">${name}</div>
             <div class="cc-hq">${city}</div>
           </div>
           <span class="${auth==='Active'?'s-ok':'s-bk'}">${auth}</span>
         </div>
-        <div class="cbdg" style="margin-top:8px">
+        <div class="sgrid" style="margin-top:8px">
+          <div class="sg"><div class="sgl">Trucks</div><div class="sgv">${trucks}</div></div>
+          <div class="sg"><div class="sgl">Drivers</div><div class="sgv">${drivers}</div></div>
+          <div class="sg"><div class="sgl">Safety</div><div class="sgv">${safeRating}</div></div>
+          <div class="sg"><div class="sgl">OOS Rate</div><div class="sgv">${c.oosRate||'—'}</div></div>
+        </div>
+        <div class="cbdg" style="margin-top:6px">
           <span class="bdg">DOT# ${c.dotNumber||'-'}</span>
           <span class="bdg">MC# ${c.mcNumber||'-'}</span>
           ${c.carrierOperation?`<span class="bdg">${c.carrierOperation.carrierOperationDesc||''}</span>`:''}
+          ${c.hazmatFlag==='Y'?'<span class="bdg">Hazmat</span>':''}
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -910,15 +870,11 @@ function onK(e){
 function send(){
   const ui=document.getElementById('ui');const val=ui.value.trim();if(!val)return;
   ui.value='';ui.style.height='auto';closeAC();
-
-  // 번호 단축키
   const num=parseInt(val);
   if(!isNaN(num)&&num>=1&&ST.optOn){
     const btns=document.querySelectorAll('#ow button');
     if(btns[num-1]){btns[num-1].click();return}
   }
-
-  // pending 처리
   if(ST.pending){
     const p=ST.pending;ST.pending=null;addUser(val);
     if(p==='__lane__')handleLaneInput(val);
@@ -926,14 +882,12 @@ function send(){
     else if(p==='__mc__')doMC(val);
     return;
   }
-
   addUser(val);
   const l=val.toLowerCase();
   if(l.includes('운임')||l.includes('rate')||l.includes('얼마')||l.includes('비용'))startRate();
   else if(l.includes('찾')||l.includes('캐리어')||l.includes('carrier'))startCarrier();
   else if(l.includes('mc-')||l.match(/\d{6,}/))doMC(val);
   else{
-    // 혹시 레인 정보가 포함된 경우
     const{origin,dest}=parseLaneText(val);
     if(origin||dest){ST.origin=origin;ST.dest=dest;ch.innerHTML='';addUser(val);handleLaneInput(val)}
     else{
