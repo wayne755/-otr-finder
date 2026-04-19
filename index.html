@@ -704,19 +704,86 @@ function startMC(){
     document.getElementById('ui').focus();
   },300);
 }
-function doMC(q){
-  const f=C.find(c=>c.mc.toLowerCase().includes(q.toLowerCase())||c.dot.toLowerCase().includes(q.toLowerCase())||c.n.toLowerCase().includes(q.toLowerCase()));
-  if(!f){
-    addAI(`"${q}" — 데이터베이스에서 찾지 못했습니다.\nFMCSA 공식 조회: <a href="https://safer.fmcsa.dot.gov" target="_blank" style="color:var(--g800);text-decoration:underline">safer.fmcsa.dot.gov</a>`);
-    ST.pending='__mc__';return;
+async function doMC(q){
+  // 로컬 DB 먼저 확인
+  const local=C.find(c=>
+    c.mc.toLowerCase().includes(q.toLowerCase())||
+    c.dot.toLowerCase().includes(q.toLowerCase())||
+    c.n.toLowerCase().includes(q.toLowerCase())
+  );
+  if(local){
+    const w=document.createElement('div');w.className='res';
+    w.innerHTML=`<div class="res-hdr">검색 결과 (로컬 DB)</div><div class="cards">${cHTML(local,1)}</div>`;
+    ch.appendChild(w);scr();
+    setTimeout(()=>{
+      addOpts([{l:'캐리어 찾기'},{l:'다른 MC 조회'},{l:'처음으로'}],(o)=>{
+        if(o.l.includes('캐리어'))startCarrier();
+        else if(o.l.includes('MC'))startMC();
+        else showWelcome();
+      });
+    },400);
+    return;
   }
-  const w=document.createElement('div');w.className='res';
-  w.innerHTML=`<div class="res-hdr">검색 결과</div><div class="cards">${cHTML(f,1)}</div>`;
-  ch.appendChild(w);scr();
+
+  // FMCSA API 조회
+  addThink();
+  const WORKER='https://otr-finder-api.wayneslee1018.workers.dev';
+  let apiUrl='';
+  const clean=q.replace(/mc-?/i,'').trim();
+
+  if(q.match(/^mc-?\d+$/i)) apiUrl=`${WORKER}/mc/${clean}`;
+  else if(q.match(/^\d{6,}$/)) apiUrl=`${WORKER}/dot/${clean}`;
+  else apiUrl=`${WORKER}/name/${encodeURIComponent(q)}`;
+
+  try{
+    const res=await fetch(apiUrl);
+    const data=await res.json();
+    rmThink();
+
+    // 데이터 파싱
+    const carriers=data.content||[];
+    if(!carriers.length){
+      addAI(`"${q}" — FMCSA에서도 찾지 못했습니다.\n공식 조회: <a href="https://safer.fmcsa.dot.gov" target="_blank" style="color:var(--g800);text-decoration:underline">safer.fmcsa.dot.gov</a>`);
+      ST.pending='__mc__';return;
+    }
+
+    // 결과를 카드로 표시
+    const w=document.createElement('div');w.className='res';
+    w.innerHTML=`<div class="res-hdr">FMCSA 검색 결과 ${carriers.length}개</div>
+    <div class="cards">${carriers.slice(0,5).map((item,i)=>{
+      const c=item.carrier||item;
+      const name=c.legalName||c.dbaName||'Unknown';
+      const mc=c.dotNumber||'';
+      const auth=c.allowedToOperate==='Y'?'Active':'Inactive';
+      const city=`${c.phyCity||''}, ${c.phyState||''}`;
+      return`<div class="cc">
+        <div class="cc-top">
+          <div class="cc-rnk ${i===0?'r1':''}">${i+1}</div>
+          <div class="cc-nw">
+            <div class="cc-name">${name}</div>
+            <div class="cc-hq">${city}</div>
+          </div>
+          <span class="${auth==='Active'?'s-ok':'s-bk'}">${auth}</span>
+        </div>
+        <div class="cbdg" style="margin-top:8px">
+          <span class="bdg">DOT# ${c.dotNumber||'-'}</span>
+          <span class="bdg">MC# ${c.mcNumber||'-'}</span>
+          ${c.carrierOperation?`<span class="bdg">${c.carrierOperation.carrierOperationDesc||''}</span>`:''}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+    ch.appendChild(w);scr();
+
+  }catch(e){
+    rmThink();
+    addAI(`조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.`);
+    ST.pending='__mc__';
+  }
+
   setTimeout(()=>{
-    addOpts([{l:'캐리어 찾기'},{l:'다른 MC 조회'},{l:'처음으로'}],(o)=>{
-      if(o.l.includes('캐리어'))startCarrier();
-      else if(o.l.includes('MC'))startMC();
+    addOpts([{l:'다른 MC 조회'},{l:'캐리어 찾기'},{l:'처음으로'}],(o)=>{
+      if(o.l.includes('MC'))startMC();
+      else if(o.l.includes('캐리어'))startCarrier();
       else showWelcome();
     });
   },400);
