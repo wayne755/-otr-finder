@@ -4,47 +4,48 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>OTR Finder</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#FAFAF9;
+  --bg:#FFFFFF;
   --surface:#FFFFFF;
-  --sidebar:#F5F4F2;
-  --sidebar-border:#EBEBEA;
+  --sidebar:#F9F9F9;
+  --sidebar-border:#ECECEC;
 
-  --g50:#F7F6F4;
-  --g100:#EFEDE9;
-  --g150:#E5E2DC;
-  --g200:#D8D4CC;
-  --g300:#BCB8AE;
-  --g400:#9E9A91;
-  --g500:#7A766E;
-  --g600:#5C5850;
-  --g700:#3E3C36;
-  --g800:#28261F;
-  --g900:#1A1812;
+  --g50:#F7F7F8;
+  --g100:#ECECEC;
+  --g150:#E3E3E3;
+  --g200:#D1D5DB;
+  --g300:#B4B4B4;
+  --g400:#8E8EA0;
+  --g500:#6E6E80;
+  --g600:#4D4D4F;
+  --g700:#353740;
+  --g800:#202123;
+  --g900:#0D0D0D;
 
-  --accent:#1A1812;
-  --accent2:#3D6B57;   /* 물류 그린 포인트 */
+  --user-bub:#F4F4F4;   /* 연한 그레이 유저 버블 */
+  --accent:#0D0D0D;
+  --accent2:#3D6B57;
   --accent2-light:#EBF4EF;
   --accent2-mid:#6A9E86;
 
   --blue:#2D5FA8;
   --blue-light:#EEF3FB;
 
-  --sh0:0 1px 3px rgba(26,24,18,.06);
-  --sh1:0 4px 16px rgba(26,24,18,.08);
-  --sh2:0 12px 40px rgba(26,24,18,.12);
-  --sh3:0 24px 64px rgba(26,24,18,.16);
+  --sh0:0 1px 2px rgba(0,0,0,.04);
+  --sh1:0 4px 16px rgba(0,0,0,.06);
+  --sh2:0 12px 40px rgba(0,0,0,.10);
+  --sh3:0 24px 64px rgba(0,0,0,.14);
 
   --radius-sm:8px;
   --radius:12px;
   --radius-lg:18px;
   --radius-xl:24px;
 }
-html,body{height:100%;-webkit-font-smoothing:antialiased;overflow:hidden}
-body{background:var(--bg);color:var(--g800);font-family:'DM Sans',sans-serif;font-size:15px;display:flex}
+html,body{height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
+body{background:var(--bg);color:var(--g800);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:400;line-height:1.6;display:flex;letter-spacing:-.003em}
 button{cursor:pointer;font-family:inherit;border:none;background:none}
 textarea{font-family:inherit}
 ::-webkit-scrollbar{width:4px}
@@ -59,6 +60,14 @@ textarea{font-family:inherit}
 .sidebar-new:hover{background:var(--surface);border-color:var(--g150);color:var(--g800);box-shadow:var(--sh0)}
 .sidebar-new svg{width:13px;height:13px;stroke:var(--g400);fill:none;stroke-width:2;stroke-linecap:round}
 .sidebar-section{font-size:10px;font-weight:600;color:var(--g300);letter-spacing:.08em;text-transform:uppercase;padding:20px 8px 7px}
+.recent-list{display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:calc(100vh - 260px)}
+.recent-item{padding:8px 12px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--g500);cursor:pointer;transition:all .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:left;display:flex;align-items:center;gap:8px;position:relative}
+.recent-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--g300);flex-shrink:0}
+.recent-item:hover{background:var(--surface);color:var(--g800);box-shadow:var(--sh0)}
+.recent-item .rm-x{margin-left:auto;opacity:0;font-size:14px;color:var(--g400);line-height:1;padding:2px 4px;border-radius:4px;transition:opacity .1s}
+.recent-item:hover .rm-x{opacity:1}
+.recent-item .rm-x:hover{background:var(--g150);color:var(--g700)}
+.recent-empty{padding:8px 12px;font-size:11.5px;color:var(--g300);font-style:italic}
 .sidebar-item{padding:8px 12px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--g500);cursor:pointer;transition:all .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:left;display:flex;align-items:center;gap:7px}
 .sidebar-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--g300);flex-shrink:0}
 .sidebar-item:hover{background:var(--surface);color:var(--g800);box-shadow:var(--sh0)}
@@ -84,46 +93,81 @@ textarea{font-family:inherit}
 .chat{flex:1;overflow-y:auto;padding:0 0 8px}
 .chat-inner{max-width:740px;margin:0 auto;padding:28px 28px 8px}
 
-/* ── WELCOME ── */
-.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;text-align:center;padding:40px 24px;animation:wFade .5s ease}
-@keyframes wFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.welcome-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent2-light);color:var(--accent2);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:20px;letter-spacing:.02em}
-.welcome-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.welcome-icon{font-size:42px;margin-bottom:18px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.1))}
-.welcome-title{font-size:30px;font-weight:700;color:var(--g900);letter-spacing:-.8px;margin-bottom:10px;line-height:1.15}
-.welcome-sub{font-size:14px;color:var(--g400);margin-bottom:40px;line-height:1.7;max-width:400px}
-.welcome-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:580px}
-.pill{padding:9px 18px;border-radius:20px;border:1.5px solid var(--g150);background:var(--surface);font-size:12.5px;color:var(--g600);cursor:pointer;transition:all .18s;font-weight:500;box-shadow:var(--sh0)}
-.pill:hover{border-color:var(--g800);background:var(--g900);color:#fff;transform:translateY(-1px);box-shadow:var(--sh1)}
+/* ── WELCOME (ChatGPT 스타일) ── */
+.welcome-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;animation:wFade .45s ease;pointer-events:none}
+.welcome-wrap > *{pointer-events:auto}
+@keyframes wFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.welcome-title{font-size:30px;font-weight:500;color:var(--g900);letter-spacing:-.4px;margin-bottom:28px;text-align:center}
+.welcome-searchbox{width:100%;max-width:720px;background:var(--surface);border:1px solid var(--g150);border-radius:28px;padding:10px 14px 10px 20px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh0);transition:all .2s}
+.welcome-searchbox:focus-within{border-color:var(--g300);box-shadow:var(--sh1)}
+.welcome-searchbox .plus-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--g500);font-size:20px;font-weight:300;flex-shrink:0}
+.welcome-searchbox input{flex:1;border:none;outline:none;background:transparent;font-size:15px;color:var(--g900);font-family:inherit;padding:10px 0}
+.welcome-searchbox input::placeholder{color:var(--g400)}
+.welcome-send{width:36px;height:36px;border-radius:50%;background:var(--g900);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .16s}
+.welcome-send:hover{background:var(--g700);transform:scale(1.04)}
+.welcome-send:disabled{background:var(--g300);cursor:not-allowed;transform:none}
+.welcome-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;max-width:720px}
+.wchip{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;border:1px solid var(--g150);background:var(--surface);font-size:13px;color:var(--g700);cursor:pointer;transition:all .16s;font-weight:400}
+.wchip:hover{background:var(--g50);border-color:var(--g300);color:var(--g900)}
+.wchip svg{width:15px;height:15px;stroke:var(--g500);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
-/* ── MESSAGES ── */
-.mg{padding:5px 0;animation:msgIn .22s ease}
+/* ── MESSAGES (ChatGPT style) ── */
+.mg{padding:10px 0;animation:msgIn .22s ease}
 @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.msg{display:flex;gap:10px;align-items:flex-start}
-.msg.user{flex-direction:row-reverse}
-.msg.user .bub{background:var(--g900);color:#fff;border-radius:var(--radius-lg) 5px var(--radius-lg) var(--radius-lg);max-width:78%;font-size:13.5px;line-height:1.6}
-.msg.ai .bub{background:var(--surface);color:var(--g800);border-radius:5px var(--radius-lg) var(--radius-lg) var(--radius-lg);max-width:84%;border:1px solid var(--g100);box-shadow:var(--sh0)}
-.av{width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px;background:var(--g900);display:flex;align-items:center;justify-content:center}
-.av svg{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round}
-.bub{padding:12px 16px;font-size:13.5px;line-height:1.68;white-space:pre-wrap}
-.thk-dots{display:inline-flex;gap:5px;align-items:center;padding:14px 16px}
-.dot{width:5px;height:5px;border-radius:50%;background:var(--g300);animation:bo .9s infinite}
+
+/* 유저 메시지 - 우측 정렬, 연한 그레이 버블 */
+.msg.user{display:flex;justify-content:flex-end}
+.msg.user .bub{
+  background:var(--user-bub);
+  color:var(--g800);
+  border-radius:20px;
+  max-width:78%;
+  padding:10px 18px;
+  font-size:15px;
+  line-height:1.55;
+  font-weight:400;
+  letter-spacing:-.003em;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+/* AI 메시지 - 아바타 없음, 배경 없음, 전체 너비 텍스트만 */
+.msg.ai{display:block;width:100%}
+.msg.ai .bub{
+  background:transparent;
+  color:var(--g800);
+  padding:0;
+  max-width:100%;
+  font-size:15.5px;
+  line-height:1.72;
+  font-weight:400;
+  letter-spacing:-.003em;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+/* thinking dots - AI 메시지 스타일에 맞춰 */
+.thk-dots{display:inline-flex;gap:5px;align-items:center;padding:4px 0}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--g300);animation:bo .9s infinite}
 .dot:nth-child(2){animation-delay:.18s}.dot:nth-child(3){animation-delay:.36s}
-@keyframes bo{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-5px);opacity:1}}
+@keyframes bo{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+
+/* 타이핑 커서 */
+.typing-cursor{display:inline-block;width:8px;height:16px;background:var(--g800);margin-left:2px;vertical-align:middle;border-radius:1px;animation:blink 1s step-end infinite;transform:translateY(-1px)}
+@keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
 
 /* ── OPTIONS ── */
-.opts{padding:6px 0 6px 38px;display:flex;flex-direction:column;gap:5px;animation:fu .22s ease}
+.opts{padding:6px 0;display:flex;flex-direction:column;gap:5px;animation:fu .22s ease}
 @keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .opt{display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:var(--radius);border:1.5px solid var(--g150);background:var(--surface);font-size:13px;color:var(--g700);text-align:left;transition:all .16s;box-shadow:var(--sh0)}
 .opt:hover{border-color:var(--g800);background:var(--g50);transform:translateX(2px)}
 .opt:disabled{opacity:.3;cursor:not-allowed;transform:none}
-.onum{min-width:22px;height:22px;border-radius:6px;background:var(--g100);color:var(--g500);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
+.onum{min-width:22px;height:22px;border-radius:6px;background:var(--g100);color:var(--g500);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace}
 .olbl{font-weight:600;font-size:13px;color:var(--g800)}
 .osub{font-size:11px;color:var(--g400);margin-top:1px}
 
 /* ── RESULTS ── */
-.res{padding:6px 0 6px 38px;animation:fu .25s ease}
+.res{padding:6px 0;animation:fu .25s ease}
 .res-hdr{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:6px}
 .res-hdr::after{content:'';flex:1;height:1px;background:var(--g100)}
 .aib{background:var(--surface);border:1.5px solid var(--g150);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;font-size:13px;line-height:1.8;color:var(--g700);white-space:pre-wrap;box-shadow:var(--sh0)}
@@ -133,7 +177,7 @@ textarea{font-family:inherit}
 .cc{background:var(--surface);border:1.5px solid var(--g150);border-radius:var(--radius-lg);padding:14px 16px;cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh0)}
 .cc:hover{border-color:var(--g300);box-shadow:var(--sh1);transform:translateY(-1px)}
 .cc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
-.cc-rnk{width:22px;height:22px;border-radius:6px;background:var(--g100);color:var(--g500);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
+.cc-rnk{width:22px;height:22px;border-radius:6px;background:var(--g100);color:var(--g500);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace}
 .cc-rnk.r1{background:var(--g900);color:#fff}.cc-rnk.r2{background:var(--g700);color:#fff}.cc-rnk.r3{background:var(--g400);color:#fff}
 .cc-nw{flex:1;min-width:0}
 .cc-name{font-size:13.5px;font-weight:700;color:var(--g900);letter-spacing:-.2px}
@@ -144,9 +188,9 @@ textarea{font-family:inherit}
 .sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
 .sg{background:var(--g50);border-radius:8px;padding:6px 7px;text-align:center;border:1px solid var(--g100)}
 .sgl{font-size:8px;color:var(--g400);margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em;font-weight:500}
-.sgv{font-size:11px;font-weight:700;color:var(--g700);font-family:'DM Mono',monospace}
+.sgv{font-size:11px;font-weight:700;color:var(--g700);font-family:'JetBrains Mono',monospace}
 .cbdg{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.bdg{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--g100);color:var(--g500);font-weight:600;font-family:'DM Mono',monospace}
+.bdg{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--g100);color:var(--g500);font-weight:600;font-family:'JetBrains Mono',monospace}
 .db-badge{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--blue-light);color:var(--blue);font-weight:600}
 .cact{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--g100)}
 .cbtn{flex:1;padding:8px;border-radius:var(--radius-sm);font-size:11.5px;font-weight:600;transition:all .15s}
@@ -165,15 +209,15 @@ textarea{font-family:inherit}
 .rate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .rg{background:var(--g50);border:1px solid var(--g100);border-radius:var(--radius);padding:12px 10px;text-align:center}
 .rg-l{font-size:9px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.rg-v{font-size:18px;font-weight:700;color:var(--g900);letter-spacing:-.5px;font-family:'DM Mono',monospace}
+.rg-v{font-size:18px;font-weight:700;color:var(--g900);letter-spacing:-.5px;font-family:'JetBrains Mono',monospace}
 .rg-s{font-size:10px;color:var(--g400);margin-top:2px}
 .rr-lbl{font-size:11px;font-weight:600;color:var(--g600);margin-bottom:8px}
 .rr-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.rr-tag{font-size:10px;color:var(--g400);width:36px;flex-shrink:0;font-weight:600;font-family:'DM Mono',monospace}
+.rr-tag{font-size:10px;color:var(--g400);width:36px;flex-shrink:0;font-weight:600;font-family:'JetBrains Mono',monospace}
 .rr-bar{flex:1;height:5px;background:var(--g100);border-radius:5px;overflow:hidden}
 .rr-fill{height:100%;background:var(--g300);border-radius:5px;transition:width .4s ease}
 .rr-fill.mid{background:var(--accent2-mid)}
-.rr-val{font-size:12px;font-weight:700;color:var(--g800);width:58px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.rr-val{font-size:12px;font-weight:700;color:var(--g800);width:58px;text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace}
 .mkt-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .mkt-lbl{font-size:11px;color:var(--g500)}
 .mkt-badge{font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;background:var(--accent2-light);color:var(--accent2)}
@@ -182,7 +226,7 @@ textarea{font-family:inherit}
 .rate-note{font-size:10px;color:var(--g300);margin-top:10px;padding-top:9px;border-top:1px solid var(--g100)}
 
 /* ── PROGRESS ── */
-.prog{padding:5px 0 5px 38px;display:flex;align-items:center;gap:10px}
+.prog{padding:5px 0;display:flex;align-items:center;gap:10px}
 .pbar{flex:1;height:2px;background:var(--g100);border-radius:2px;overflow:hidden}
 .pfill{height:100%;background:linear-gradient(90deg,var(--accent2-mid),var(--g900));border-radius:2px;transition:width .5s ease}
 .ptxt{font-size:10px;color:var(--g400);font-weight:500;white-space:nowrap}
@@ -192,11 +236,11 @@ textarea{font-family:inherit}
 .s-bk{background:var(--g100);color:var(--g500);font-size:9px;padding:2px 7px;border-radius:5px;font-weight:600}
 .star{font-size:11px;color:var(--g200)}.star.on{color:#E4A62A}
 .sn{font-size:10px;color:var(--g400)}
-.rt{font-size:10px;color:var(--g400);margin-left:auto;font-family:'DM Mono',monospace}
+.rt{font-size:10px;color:var(--g400);margin-left:auto;font-family:'JetBrains Mono',monospace}
 .cc-row{display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap}
 .ctags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px}
 .tg{font-size:9px;padding:2px 8px;border-radius:20px;background:var(--g50);color:var(--g600);font-weight:500;border:1px solid var(--g150)}
-.cmc{font-size:8px;color:var(--g300);margin-left:auto;font-family:'DM Mono',monospace}
+.cmc{font-size:8px;color:var(--g300);margin-left:auto;font-family:'JetBrains Mono',monospace}
 
 /* ── INPUT AREA ── */
 .inp-area{padding:14px 28px 24px;flex-shrink:0;max-width:740px;margin:0 auto;width:100%}
@@ -226,12 +270,12 @@ textarea{font-family:inherit}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
 .mi{background:var(--g50);border-radius:var(--radius-sm);padding:11px 13px;border:1px solid var(--g100)}
 .mik{font-size:9px;color:var(--g400);font-weight:600;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
-.miv{font-size:12.5px;color:var(--g800);font-weight:600;font-family:'DM Mono',monospace}
+.miv{font-size:12.5px;color:var(--g800);font-weight:600;font-family:'JetBrains Mono',monospace}
 .macts{display:flex;gap:8px;margin-top:14px}
 .mbtn{flex:1;padding:12px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .16s;text-align:center;display:flex;align-items:center;justify-content:center}
 .mbtn.p{background:var(--g900);color:#fff}.mbtn.p:hover{background:var(--g700)}
 .mbtn.s{background:var(--g100);color:var(--g700);border:1.5px solid var(--g150)}.mbtn.s:hover{background:var(--g150)}
-.rfqpre{background:var(--g50);border:1.5px solid var(--g150);border-radius:var(--radius);padding:14px;font-size:11.5px;color:var(--g700);white-space:pre-wrap;max-height:300px;overflow-y:auto;line-height:1.75;font-family:'DM Mono',monospace}
+.rfqpre{background:var(--g50);border:1.5px solid var(--g150);border-radius:var(--radius);padding:14px;font-size:11.5px;color:var(--g700);white-space:pre-wrap;max-height:300px;overflow-y:auto;line-height:1.75;font-family:'JetBrains Mono',monospace}
 .cpybtn{width:100%;margin-top:10px;padding:12px;border-radius:var(--radius);font-size:13px;font-weight:600;background:var(--g900);color:#fff;transition:all .16s}
 .cpybtn:hover{background:var(--g700)}.cpybtn.ok{background:var(--accent2)}
 
@@ -250,20 +294,13 @@ textarea{font-family:inherit}
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-mark">🚛</div>
-    OTR Finder
-  </div>
+  <div class="sidebar-logo">OTR Finder</div>
   <button class="sidebar-new" onclick="goHome()">
     <svg viewBox="0 0 16 16"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
     새 대화 시작
   </button>
-  <div class="sidebar-section">빠른 검색</div>
-  <button class="sidebar-item" onclick="fillInput('LA에서 Chicago 가는 Dry Van 운송회사 찾아줘')">LA → Chicago 캐리어</button>
-  <button class="sidebar-item" onclick="fillInput('엘에이에서 조지아 가는 OTR 운송회사 찾아줘')">LA → Georgia OTR</button>
-  <button class="sidebar-item" onclick="fillInput('LA to NY Dry Van 운임 얼마야?')">LA → NY 운임 조회</button>
-  <button class="sidebar-item" onclick="fillInput('MC-042958 조회해줘')">MC# 캐리어 조회</button>
-  <button class="sidebar-item" onclick="fillInput('Hazmat 취급 가능한 캐리어 찾아줘')">Hazmat 전문 캐리어</button>
+  <div class="sidebar-section">최근 검색</div>
+  <div id="recentList" class="recent-list"></div>
   <div class="sidebar-footer">
     <button class="sidebar-footer-item">
       <div class="user-dot">W</div>
@@ -276,10 +313,7 @@ textarea{font-family:inherit}
 <div class="main">
   <!-- 모바일 상단바 -->
   <div class="topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-mark">🚛</div>
-      OTR Finder
-    </div>
+    <div class="topbar-logo">OTR Finder</div>
     <button class="topbar-menu" onclick="toggleSidebar()">
       <svg viewBox="0 0 16 16"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
     </button>
@@ -333,7 +367,44 @@ const C=[{id:1,n:'J.B. Hunt Transport',mc:'MC-042958',dot:'804436',yr:1961,hq:'L
 // ─── STATE / CHAT ─────────────────────────────────────────────────
 let ST={origin:'',dest:'',eq:'',weight:'',notes:'',saved:JSON.parse(localStorage.getItem('otr9_sv')||'[]'),optOn:false,pending:null};
 let chatHistory=[];
+let recentSearches=JSON.parse(localStorage.getItem('otr9_recent')||'[]');
 const persist=()=>localStorage.setItem('otr9_sv',JSON.stringify(ST.saved));
+const persistRecent=()=>localStorage.setItem('otr9_recent',JSON.stringify(recentSearches));
+
+// ─── 최근 검색 관리 ──────────────────────────────────────────────
+function addRecent(query){
+  if(!query||query.length<2)return;
+  const trimmed=query.trim();
+  // 중복 제거
+  recentSearches=recentSearches.filter(r=>r.q!==trimmed);
+  // 맨 앞에 추가
+  recentSearches.unshift({q:trimmed,t:Date.now()});
+  // 최대 15개만 보관
+  if(recentSearches.length>15)recentSearches=recentSearches.slice(0,15);
+  persistRecent();
+  renderRecent();
+}
+
+function removeRecent(idx,evt){
+  if(evt){evt.stopPropagation();evt.preventDefault();}
+  recentSearches.splice(idx,1);
+  persistRecent();
+  renderRecent();
+}
+
+function renderRecent(){
+  const box=document.getElementById('recentList');
+  if(!box)return;
+  if(recentSearches.length===0){
+    box.innerHTML=`<div class="recent-empty">검색 기록이 없어요</div>`;
+    return;
+  }
+  box.innerHTML=recentSearches.map((r,i)=>{
+    const label=r.q.length>30?r.q.slice(0,28)+'…':r.q;
+    const safe=r.q.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<button class="recent-item" onclick="sendWelcomeQuery('${safe}')" title="${safe}"><span>${label}</span><span class="rm-x" onclick="removeRecent(${i},event)">×</span></button>`;
+  }).join('');
+}
 const isS=c=>ST.saved.some(s=>s.id===c.id);
 const togSv=c=>{if(isS(c))ST.saved=ST.saved.filter(s=>s.id!==c.id);else ST.saved=[...ST.saved,c];persist();refreshSvBtns()};
 const slp=ms=>new Promise(r=>setTimeout(r,ms));
@@ -341,34 +412,98 @@ const slp=ms=>new Promise(r=>setTimeout(r,ms));
 // ─── CHAT HELPERS ────────────────────────────────────────────────
 const ch=document.getElementById('chatInner');
 const scr=()=>setTimeout(()=>document.getElementById('chat').scrollTop=99999,60);
-const SVG=`<svg viewBox="0 0 12 12"><circle cx="6" cy="4" r="2"/><path d="M2 10c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>`;
-const AV=`<div class="av">${SVG}</div>`;
-function addAI(html){const d=document.createElement('div');d.className='mg';d.innerHTML=`<div class="msg ai">${AV}<div class="bub ai">${html.replace(/\n/g,'<br/>')}</div></div>`;ch.appendChild(d);scr();return d;}
-function addUser(t){const d=document.createElement('div');d.className='mg';d.innerHTML=`<div class="msg user"><div class="bub user">${t}</div></div>`;ch.appendChild(d);scr();}
-function addThink(){const d=document.createElement('div');d.id='thk';d.className='mg';d.innerHTML=`<div class="msg ai">${AV}<div class="bub ai" style="padding:0"><div class="thk-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div>`;ch.appendChild(d);scr();}
+const SVG=``;
+const AV=``;
+function addAI(html){const d=document.createElement('div');d.className='mg';d.innerHTML=`<div class="msg ai"><div class="bub">${html.replace(/\n/g,'<br/>')}</div></div>`;ch.appendChild(d);scr();return d;}
+
+// ─── AI 메시지 타이핑 애니메이션 (스트리밍 느낌) ──────────────────
+async function addAITyping(text,opts={}){
+  const speed=opts.speed||14; // ms per char
+  const d=document.createElement('div');d.className='mg';
+  d.innerHTML=`<div class="msg ai"><div class="bub"><span class="typing-content"></span><span class="typing-cursor"></span></div></div>`;
+  ch.appendChild(d);
+  const target=d.querySelector('.typing-content');
+  const cursor=d.querySelector('.typing-cursor');
+  const formatted=text.replace(/\n/g,'<br/>');
+  let i=0;
+  return new Promise(resolve=>{
+    let buffer='';
+    const tick=()=>{
+      if(i>=formatted.length){if(cursor)cursor.remove();resolve();return;}
+      if(formatted[i]==='<'){
+        const end=formatted.indexOf('>',i);
+        if(end>0){buffer+=formatted.slice(i,end+1);i=end+1;target.innerHTML=buffer;scrSoft();setTimeout(tick,speed);return;}
+      }
+      buffer+=formatted[i];i++;
+      target.innerHTML=buffer;
+      scrSoft();
+      const ch=formatted[i-1];
+      const delay=(ch==='.'||ch==='!'||ch==='?')?speed*8:(ch===','||ch===' ')?speed*1.5:speed;
+      setTimeout(tick,delay);
+    };
+    tick();
+  });
+}
+
+function scrSoft(){
+  const chEl=document.getElementById('chat');
+  const atBottom=chEl.scrollHeight-chEl.scrollTop-chEl.clientHeight<100;
+  if(atBottom)chEl.scrollTop=chEl.scrollHeight;
+}
+function addUser(t){const d=document.createElement('div');d.className='mg';d.innerHTML=`<div class="msg user"><div class="bub">${t}</div></div>`;ch.appendChild(d);scr();}
+function addThink(){const d=document.createElement('div');d.id='thk';d.className='mg';d.innerHTML=`<div class="msg ai"><div class="bub"><div class="thk-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div>`;ch.appendChild(d);scr();}
 function rmThink(){const t=document.getElementById('thk');if(t)t.remove();}
 function addProg(p,lbl){const d=document.createElement('div');d.className='prog';d.innerHTML=`<div class="pbar"><div class="pfill" style="width:${p}%"></div></div><span class="ptxt">${lbl}</span>`;ch.appendChild(d);scr();}
 function addOpts(opts,cb){ST.optOn=true;const w=document.createElement('div');w.className='opts';w.id='ow';opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt';b.innerHTML=`<span class="onum">${i+1}</span><div><div class="olbl">${o.l}</div>${o.s?`<div class="osub">${o.s}</div>`:''}</div>`;b.onclick=()=>{if(!ST.optOn)return;disOpts();cb(o,i);};w.appendChild(b);});ch.appendChild(w);scr();document.getElementById('ui').placeholder=`${opts.length}개 중 선택 또는 직접 입력...`;}
 function disOpts(){ST.optOn=false;const w=document.getElementById('ow');if(w){w.querySelectorAll('button').forEach(b=>b.disabled=true);w.id='ow_d';}document.getElementById('ui').placeholder='운송 관련 무엇이든 물어보세요...';}
 
-// ─── WELCOME ─────────────────────────────────────────────────────
+// ─── WELCOME (ChatGPT 스타일) ─────────────────────────────────────
 function showWelcome(){
   ch.innerHTML='';ST.pending=null;ST.optOn=false;chatHistory=[];
-  const d=document.createElement('div');d.className='welcome';
+  // 하단 고정 입력창 숨기기
+  document.querySelector('.inp-area').style.display='none';
+
+  const d=document.createElement('div');d.className='welcome-wrap';d.id='welcomeWrap';
   d.innerHTML=`
-    <div class="welcome-badge"><span class="welcome-badge-dot"></span>FMCSA 50,000+ Carriers</div>
-    <div class="welcome-icon">🚛</div>
-    <div class="welcome-title">OTR Finder AI</div>
-    <div class="welcome-sub">미국 화물 운송에 관해 무엇이든 물어보세요<br/>FMCSA 5만개 캐리어 DB 기반으로 답변합니다</div>
-    <div class="welcome-pills">
-      <button class="pill" onclick="fillInput('LA에서 Chicago 가는 Dry Van 운송회사 찾아줘')">🔍 LA → Chicago 캐리어</button>
-      <button class="pill" onclick="fillInput('엘에이에서 조지아 가는 OTR 운송회사 찾아줘')">🚚 LA → Georgia OTR</button>
-      <button class="pill" onclick="fillInput('LA to NY Dry Van 운임 얼마야?')">💰 LA → NY 운임 조회</button>
-      <button class="pill" onclick="fillInput('MC-042958 조회해줘')">🔢 MC# 조회</button>
-      <button class="pill" onclick="fillInput('Hazmat 취급 가능한 캐리어 찾아줘')">⚠️ Hazmat 캐리어</button>
-      <button class="pill" onclick="fillInput('지금 freight 시장 상황 어때?')">📊 시장 상황</button>
+    <div class="welcome-title">무엇을 도와드릴까요?</div>
+    <div class="welcome-searchbox">
+      <div class="plus-icon">+</div>
+      <input id="welcomeInput" type="text" placeholder="운송 관련 무엇이든 물어보세요" autocomplete="off"/>
+      <button class="welcome-send" id="welcomeSend" onclick="sendFromWelcome()" aria-label="전송">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3 8l5-5 5 5"/></svg>
+      </button>
+    </div>
+    <div class="welcome-chips">
+      <button class="wchip" onclick="sendWelcomeQuery('주요 레인별 운임 보드 보여줘 (LA-NY, LA-Chicago, Dallas-Atlanta 등)')">
+        <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="6" y1="7" x2="6" y2="13"/><line x1="10" y1="7" x2="10" y2="13"/></svg>
+        운임 보드
+      </button>
+      <button class="wchip" onclick="sendWelcomeQuery('지금 미국 freight 시장 상황 어때? 운임 트렌드랑 수요 공급 상황 알려줘')">
+        <svg viewBox="0 0 16 16"><path d="M2 12l4-4 3 3 5-6"/><polyline points="10 5 13 5 13 8"/></svg>
+        시장 상황
+      </button>
     </div>`;
   ch.appendChild(d);
+  setTimeout(()=>{const wi=document.getElementById('welcomeInput');if(wi)wi.focus();},100);
+}
+
+// ─── 웰컴 화면에서 전송 ───────────────────────────────────────────
+function sendFromWelcome(){
+  const wi=document.getElementById('welcomeInput');
+  if(!wi)return;
+  const val=wi.value.trim();
+  if(!val)return;
+  sendWelcomeQuery(val);
+}
+
+function sendWelcomeQuery(text){
+  // 웰컴 화면 제거 + 하단 입력창 복원
+  const ww=document.getElementById('welcomeWrap');if(ww)ww.remove();
+  document.querySelector('.inp-area').style.display='';
+  // 하단 입력창에 값 넣고 send() 호출
+  const ui=document.getElementById('ui');
+  ui.value=text;
+  send();
 }
 
 // ─── AI 레인 파싱 ────────────────────────────────────────────────
@@ -435,7 +570,9 @@ async function doAIChat(userMsg){
     const reply=data.content?.[0]?.text||'죄송해요, 잠시 후 다시 시도해주세요.';
     rmThink();
     chatHistory.push({role:'assistant',content:reply});
-    addAI(reply);
+    // 타이핑 애니메이션으로 표시 (긴 텍스트는 조금 빠르게)
+    const speed=reply.length>400?8:14;
+    await addAITyping(reply,{speed});
 
     // ── Worker가 캐리어 데이터를 반환했으면 카드로 렌더링 ──
     const meta=data._meta;
@@ -589,6 +726,7 @@ async function send(){
   }
 
   addUser(val);
+  addRecent(val); // 최근 검색에 저장
 
   // pending 상태 처리
   if(ST.pending==='__eq__'){ST.pending=null;ST.eq=val;askWeight();return;}
@@ -638,7 +776,18 @@ function goHome(){showWelcome();}
 window.openC=openC;window.openRFQ=openRFQ;window.cpyRFQ=cpyRFQ;window.closeM=closeM;
 window.togSv=togSv;window.fillInput=fillInput;window.goHome=goHome;window.toggleSidebar=toggleSidebar;
 window.openRFQSupa=openRFQSupa;window.openDetailSupa=openDetailSupa;
+window.sendFromWelcome=sendFromWelcome;window.sendWelcomeQuery=sendWelcomeQuery;
+window.removeRecent=removeRecent;
 
+// 웰컴 입력창 Enter 키 전역 핸들러
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    const wi=document.getElementById('welcomeInput');
+    if(wi&&document.activeElement===wi){e.preventDefault();sendFromWelcome();}
+  }
+});
+
+renderRecent(); // 초기 사이드바 렌더
 showWelcome();
 </script>
 </body>
